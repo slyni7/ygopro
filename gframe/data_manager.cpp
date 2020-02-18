@@ -295,7 +295,7 @@ const wchar_t* DataManager::FormatType(int type) {
 	unsigned filter = 1;
 	int i = 1050;
 	for(; filter != 0x8000000; filter <<= 1, ++i) {
-		if(type & filter) {
+		if((type & filter) && !(filter & TYPE_EXTRA)) {
 			BufferIO::CopyWStrRef(GetSysString(i), p, 16);
 			*p = L'|';
 			*++p = 0;

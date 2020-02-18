@@ -1658,7 +1658,7 @@ bool DeckBuilder::CardNameContains(const wchar_t *haystack, const wchar_t *needl
 	return false;
 }
 bool DeckBuilder::push_main(code_pointer pointer, int seq) {
-	if(pointer->second.type & (TYPE_FUSION | TYPE_SYNCHRO | TYPE_XYZ | TYPE_LINK))
+	if(pointer->second.type & (TYPE_FUSION | TYPE_SYNCHRO | TYPE_EXTRA | TYPE_XYZ | TYPE_LINK))
 		return false;
 	auto& container = deckManager.current_deck.main;
 	int maxc = mainGame->is_siding ? 64 : 60;
@@ -1673,7 +1673,7 @@ bool DeckBuilder::push_main(code_pointer pointer, int seq) {
 	return true;
 }
 bool DeckBuilder::push_extra(code_pointer pointer, int seq) {
-	if(!(pointer->second.type & (TYPE_FUSION | TYPE_SYNCHRO | TYPE_XYZ | TYPE_LINK)))
+	if(!(pointer->second.type & (TYPE_FUSION | TYPE_SYNCHRO | TYPE_EXTRA | TYPE_XYZ | TYPE_LINK)))
 		return false;
 	auto& container = deckManager.current_deck.extra;
 	int maxc = mainGame->is_siding ? 20 : 15;
