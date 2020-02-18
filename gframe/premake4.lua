@@ -1,7 +1,7 @@
 include "lzma/."
 include "spmemvfs/."
 
-project "ygopro"
+project "irepro"
     kind "WindowedApp"
 
     files { "**.cpp", "**.cc", "**.c", "**.h" }
