@@ -450,6 +450,22 @@ bool SingleMode::SinglePlayAnalyze(char* msg, unsigned int len) {
 				SinglePlayRefreshSingle(cc, cl, cs);
 			break;
 		}
+		case MSG_MOVE_GROUP: {
+			int count = pbuf[0];
+			pbuf += 1;
+			for(int i = 0; i < count; i++) {
+				int pc = pbuf[16 * i + 5];
+				int pl = pbuf[16 * i + 6];
+				int cc = pbuf[16 * i + 9];
+				int cl = pbuf[16 * i + 10];
+				int cs = pbuf[16 * i + 11];
+				pbuf += 16;
+				if(cl && !(cl & 0x80) && (pl != cl || pc != cc))
+					SinglePlayRefreshSingle(cc, cl, cs);
+			}
+			DuelClient::ClientAnalyze(offset, pbuf - offset);
+			break;
+		}
 		case MSG_POS_CHANGE: {
 			pbuf += 9;
 			DuelClient::ClientAnalyze(offset, pbuf - offset);

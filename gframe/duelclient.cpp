@@ -2841,6 +2841,209 @@ int DuelClient::ClientAnalyze(char * msg, unsigned int len) {
 		}
 		return true;
 	}
+	case MSG_MOVE_GROUP: {
+		int count = BufferIO::ReadUInt8(pbuf);
+		for(int i = 0; i < count; i++) {
+			unsigned int code = (unsigned int)BufferIO::ReadInt32(pbuf);
+			int pc = mainGame->LocalPlayer(BufferIO::ReadInt8(pbuf));
+			int pl = BufferIO::ReadUInt8(pbuf);
+			int ps = BufferIO::ReadInt8(pbuf);
+			int pp = BufferIO::ReadInt8(pbuf);
+			int cc = mainGame->LocalPlayer(BufferIO::ReadInt8(pbuf));
+			int cl = BufferIO::ReadUInt8(pbuf);
+			int cs = BufferIO::ReadInt8(pbuf);
+			int cp = BufferIO::ReadInt8(pbuf);
+			int reason = BufferIO::ReadInt32(pbuf);
+			/* if(!mainGame->dInfo.isReplaySkiping) {
+				if(cl & LOCATION_REMOVED && pl != cl)
+					soundManager.PlaySoundEffect(SOUND_BANISHED);
+				else if(reason & REASON_DESTROY && pl != cl)
+					soundManager.PlaySoundEffect(SOUND_DESTROYED);
+			} */
+			if (pl == 0) {
+				ClientCard* pcard = new ClientCard();
+				pcard->position = cp;
+				pcard->SetCode(code);
+				if(!mainGame->dInfo.isReplaySkiping) {
+					mainGame->gMutex.lock();
+					mainGame->dField.AddCard(pcard, cc, cl, cs);
+					mainGame->gMutex.unlock();
+					mainGame->dField.GetCardLocation(pcard, &pcard->curPos, &pcard->curRot, true);
+					pcard->curAlpha = 5;
+					mainGame->dField.FadeCard(pcard, 255, 20);
+				} else
+					mainGame->dField.AddCard(pcard, cc, cl, cs);
+			} else if (cl == 0) {
+				ClientCard* pcard = mainGame->dField.GetCard(pc, pl, ps);
+				if (code != 0 && pcard->code != code)
+					pcard->SetCode(code);
+				pcard->ClearTarget();
+				for(auto eqit = pcard->equipped.begin(); eqit != pcard->equipped.end(); ++eqit)
+					(*eqit)->equipTarget = 0;
+				if(!mainGame->dInfo.isReplaySkiping) {
+					mainGame->dField.FadeCard(pcard, 5, 20);
+					mainGame->gMutex.lock();
+					mainGame->dField.RemoveCard(pc, pl, ps);
+					mainGame->gMutex.unlock();
+					if(pcard == mainGame->dField.hovered_card)
+						mainGame->dField.hovered_card = 0;
+				} else
+					mainGame->dField.RemoveCard(pc, pl, ps);
+				delete pcard;
+			} else {
+				if (!(pl & 0x80) && !(cl & 0x80)) {
+					ClientCard* pcard = mainGame->dField.GetCard(pc, pl, ps);
+					if (pcard->code != code && (code != 0 || cl == 0x40))
+						pcard->SetCode(code);
+					pcard->cHint = 0;
+					pcard->chValue = 0;
+					if((pl & LOCATION_ONFIELD) && (cl != pl))
+						pcard->counters.clear();
+					if(cl != pl) {
+						pcard->ClearTarget();
+						if(pcard->equipTarget) {
+							pcard->equipTarget->is_showequip = false;
+							pcard->equipTarget->equipped.erase(pcard);
+							pcard->equipTarget = 0;
+						}
+					}
+					pcard->is_hovered = false;
+					pcard->is_showequip = false;
+					pcard->is_showtarget = false;
+					pcard->is_showchaintarget = false;
+					if(mainGame->dInfo.isReplaySkiping) {
+						mainGame->dField.RemoveCard(pc, pl, ps);
+						pcard->position = cp;
+						mainGame->dField.AddCard(pcard, cc, cl, cs);
+					} else {
+						mainGame->gMutex.lock();
+						mainGame->dField.RemoveCard(pc, pl, ps);
+						pcard->position = cp;
+						mainGame->dField.AddCard(pcard, cc, cl, cs);
+						mainGame->gMutex.unlock();
+						if (pl == cl && pc == cc && (cl & 0x71)) {
+							pcard->dPos = irr::core::vector3df(-0.3f, 0, 0);
+							pcard->dRot = irr::core::vector3df(0, 0, 0);
+							if (pc == 1) pcard->dPos.X = 0.3f;
+							pcard->is_moving = true;
+							pcard->aniFrame = 5;
+							mainGame->dField.MoveCard(pcard, 20);
+						} else {
+							if (cl == 0x4 && pcard->overlayed.size() > 0) {
+								mainGame->gMutex.lock();
+								for (size_t i = 0; i < pcard->overlayed.size(); ++i)
+									mainGame->dField.MoveCard(pcard->overlayed[i], 20);
+								mainGame->gMutex.unlock();
+							}
+							if (cl == 0x2) {
+								mainGame->gMutex.lock();
+								for (size_t i = 0; i < mainGame->dField.hand[cc].size(); ++i)
+									mainGame->dField.MoveCard(mainGame->dField.hand[cc][i], 20);
+								mainGame->gMutex.unlock();
+							} else {
+								mainGame->gMutex.lock();
+								mainGame->dField.MoveCard(pcard, 20);
+								if (pl == 0x2)
+									for (size_t i = 0; i < mainGame->dField.hand[pc].size(); ++i)
+										mainGame->dField.MoveCard(mainGame->dField.hand[pc][i], 20);
+								mainGame->gMutex.unlock();
+							}
+						}
+					}
+				} else if (!(pl & 0x80)) {
+					ClientCard* pcard = mainGame->dField.GetCard(pc, pl, ps);
+					if (code != 0 && pcard->code != code)
+						pcard->SetCode(code);
+					pcard->counters.clear();
+					pcard->ClearTarget();
+					pcard->is_showtarget = false;
+					pcard->is_showchaintarget = false;
+					ClientCard* olcard = mainGame->dField.GetCard(cc, cl & 0x7f, cs);
+					if(mainGame->dInfo.isReplaySkiping) {
+						mainGame->dField.RemoveCard(pc, pl, ps);
+						olcard->overlayed.push_back(pcard);
+						mainGame->dField.overlay_cards.insert(pcard);
+						pcard->overlayTarget = olcard;
+						pcard->location = 0x80;
+						pcard->sequence = olcard->overlayed.size() - 1;
+					} else {
+						mainGame->gMutex.lock();
+						mainGame->dField.RemoveCard(pc, pl, ps);
+						olcard->overlayed.push_back(pcard);
+						mainGame->dField.overlay_cards.insert(pcard);
+						mainGame->gMutex.unlock();
+						pcard->overlayTarget = olcard;
+						pcard->location = 0x80;
+						pcard->sequence = olcard->overlayed.size() - 1;
+						if (olcard->location & 0x0c) {
+							mainGame->gMutex.lock();
+							mainGame->dField.MoveCard(pcard, 20);
+							if (pl == 0x2)
+								for (size_t i = 0; i < mainGame->dField.hand[pc].size(); ++i)
+									mainGame->dField.MoveCard(mainGame->dField.hand[pc][i], 20);
+							mainGame->gMutex.unlock();
+						}
+					}
+				} else if (!(cl & 0x80)) {
+					ClientCard* olcard = mainGame->dField.GetCard(pc, pl & 0x7f, ps);
+					ClientCard* pcard = olcard->overlayed[pp];
+					if(mainGame->dInfo.isReplaySkiping) {
+						olcard->overlayed.erase(olcard->overlayed.begin() + pcard->sequence);
+						pcard->overlayTarget = 0;
+						pcard->position = cp;
+						mainGame->dField.AddCard(pcard, cc, cl, cs);
+						mainGame->dField.overlay_cards.erase(pcard);
+						for (size_t i = 0; i < olcard->overlayed.size(); ++i)
+							olcard->overlayed[i]->sequence = i;
+					} else {
+						mainGame->gMutex.lock();
+						olcard->overlayed.erase(olcard->overlayed.begin() + pcard->sequence);
+						pcard->overlayTarget = 0;
+						pcard->position = cp;
+						mainGame->dField.AddCard(pcard, cc, cl, cs);
+						mainGame->dField.overlay_cards.erase(pcard);
+						for (size_t i = 0; i < olcard->overlayed.size(); ++i) {
+							olcard->overlayed[i]->sequence = i;
+							mainGame->dField.MoveCard(olcard->overlayed[i], 2);
+						}
+						mainGame->gMutex.unlock();
+						mainGame->gMutex.lock();
+						mainGame->dField.MoveCard(pcard, 20);
+						mainGame->gMutex.unlock();
+					}
+				} else {
+					ClientCard* olcard1 = mainGame->dField.GetCard(pc, pl & 0x7f, ps);
+					ClientCard* pcard = olcard1->overlayed[pp];
+					ClientCard* olcard2 = mainGame->dField.GetCard(cc, cl & 0x7f, cs);
+					if(mainGame->dInfo.isReplaySkiping) {
+						olcard1->overlayed.erase(olcard1->overlayed.begin() + pcard->sequence);
+						olcard2->overlayed.push_back(pcard);
+						pcard->sequence = olcard2->overlayed.size() - 1;
+						pcard->location = 0x80;
+						pcard->overlayTarget = olcard2;
+						for (size_t i = 0; i < olcard1->overlayed.size(); ++i) {
+							olcard1->overlayed[i]->sequence = i;
+						}
+					} else {
+						mainGame->gMutex.lock();
+						olcard1->overlayed.erase(olcard1->overlayed.begin() + pcard->sequence);
+						olcard2->overlayed.push_back(pcard);
+						pcard->sequence = olcard2->overlayed.size() - 1;
+						pcard->location = 0x80;
+						pcard->overlayTarget = olcard2;
+						for (size_t i = 0; i < olcard1->overlayed.size(); ++i) {
+							olcard1->overlayed[i]->sequence = i;
+							mainGame->dField.MoveCard(olcard1->overlayed[i], 2);
+						}
+						mainGame->dField.MoveCard(pcard, 20);
+						mainGame->gMutex.unlock();
+					}
+				}
+			}
+		}
+		mainGame->WaitFrameSignal(20);
+		return true;
+	}
 	case MSG_POS_CHANGE: {
 		unsigned int code = (unsigned int)BufferIO::ReadInt32(pbuf);
 		int cc = mainGame->LocalPlayer(BufferIO::ReadInt8(pbuf));

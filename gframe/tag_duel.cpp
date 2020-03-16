@@ -955,6 +955,36 @@ int TagDuel::Analyze(char* msgbuffer, unsigned int len) {
 				RefreshSingle(cc, cl, cs);
 			break;
 		}
+		case MSG_MOVE_GROUP: {
+			count = BufferIO::ReadUInt8(pbuf);
+			for (int p = 0; p < 5; p++) {
+				pbufw = pbuf;
+				for (int i = 0; i < count; i++) {
+					uint32 code = BufferIO::ReadUInt32(pbuf);
+					int pc = pbuf[16 * i + 5];
+					int pl = pbuf[16 * i + 6];
+					int cc = pbuf[16 * i + 9];
+					int cl = pbuf[16 * i + 10];
+					int cs = pbuf[16 * i + 11];
+					int cp = pbuf[16 * i + 12];
+					pbuf += 12;
+					if (!(cl & (LOCATION_GRAVE + LOCATION_OVERLAY)) && ((cl & (LOCATION_DECK + LOCATION_HAND)) || (cp & POS_FACEDOWN)) && (players[i] != cur_player[cc]))
+						BufferIO::WriteInt32(pbufw, 0);
+					else
+						BufferIO::WriteInt32(pbufw, code);
+					pbufw += 12;
+				}
+				if (p < 4)
+					NetServer::SendBufferToPlayer(players[p], STOC_GAME_MSG, offset, pbuf - offset);
+				else {
+					for (auto oit = observers.begin(); oit != observers.end(); ++oit)
+						NetServer::SendBufferToPlayer(*oit, STOC_GAME_MSG, offset, pbuf - offset);
+				}
+				pbuf -= count * 16;
+			}
+			pbuf += count * 16;
+			break;
+		}
 		case MSG_POS_CHANGE: {
 			int cc = pbuf[4];
 			int cl = pbuf[5];
