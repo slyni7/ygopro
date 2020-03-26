@@ -1678,9 +1678,9 @@ void Game::ShowCardInfo(int code, bool resize) {
 			if(aptr != dataManager._datas.end())
 				sc = aptr->second.setcode;
 		}
-		if(sc) {
+		if(sc || dataManager.CheckFormatSetName(code)) {
 			offset = 23;// *yScale;
-			myswprintf(formatBuffer, L"%ls%ls", dataManager.GetSysString(1329), dataManager.FormatSetName(sc));
+			myswprintf(formatBuffer, L"%ls%ls", dataManager.GetSysString(1329), dataManager.FormatSetName(sc, code));
 			stSetName->setText(formatBuffer);
 		} else
 			stSetName->setText(L"");

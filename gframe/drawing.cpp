@@ -500,7 +500,7 @@ void Game::DrawMisc() {
 			if(dField.chains[i].solved)
 				break;
 			matManager.mTRTexture.setTexture(0, imageManager.tChain);
-			matManager.mTRTexture.AmbientColor = 0xffffff00;
+			matManager.mTRTexture.AmbientColor = 0xffffffff;
 			ic.setRotationRadians(act_rot);
 			ic.setTranslation(dField.chains[i].chain_pos);
 			driver->setMaterial(matManager.mTRTexture);

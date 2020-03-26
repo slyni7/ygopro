@@ -33,7 +33,8 @@ public:
 	const wchar_t* FormatAttribute(int attribute);
 	const wchar_t* FormatRace(int race);
 	const wchar_t* FormatType(int type);
-	const wchar_t* FormatSetName(unsigned long long setcode);
+	bool CheckFormatSetName(int code);
+	const wchar_t* FormatSetName(unsigned long long setcode, int code);
 	const wchar_t* FormatLinkMarker(int link_marker);
 
 	std::unordered_map<unsigned int, CardDataC> _datas;

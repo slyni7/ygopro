@@ -1,6 +1,9 @@
 #include "data_manager.h"
 #include "game.h"
 #include <stdio.h>
+#include "lua.h"
+#include "lauxlib.h"
+#include "lualib.h"
 
 namespace ygo {
 
@@ -307,7 +310,23 @@ const wchar_t* DataManager::FormatType(int type) {
 		return unknown_string;
 	return tpBuffer;
 }
-const wchar_t* DataManager::FormatSetName(unsigned long long setcode) {
+bool DataManager::CheckFormatSetName(int code) {
+	bool res = FALSE;
+	lua_State *L = luaL_newstate();
+	luaL_dofile(L, "expansions/expand.lua");
+	lua_getglobal(L, "data_manager_setname");
+	if (!lua_isnil(L, 1)) {
+		lua_pushinteger(L, code);
+		lua_call(L, 1, 1);
+		bool b = lua_toboolean(L, -1);
+		if (b) {
+			res = TRUE;
+		}
+	}
+	lua_close(L);
+	return res;
+}
+const wchar_t* DataManager::FormatSetName(unsigned long long setcode, int code) {
 	wchar_t* p = scBuffer;
 	for(int i = 0; i < 4; ++i) {
 		const wchar_t* setname = GetSetName((setcode >> i * 16) & 0xffff);
@@ -317,6 +336,37 @@ const wchar_t* DataManager::FormatSetName(unsigned long long setcode) {
 			*++p = 0;
 		}
 	}
+	lua_State* L = luaL_newstate();
+	luaL_dofile(L, "expansions/expand.lua");
+	lua_getglobal(L, "data_manager_setname");
+	if (!lua_isnil(L, -1)) {
+		lua_pushinteger(L, code);
+		lua_call(L, 1, 1);
+		bool b = lua_toboolean(L, -1);
+		if (b) {
+			int i = 1;
+			while (true) {
+				lua_getglobal(L, "data_manager_setname");
+				lua_pushinteger(L, code);
+				lua_pushinteger(L, i);
+				lua_call(L, 2, 1);
+				if (lua_isboolean(L, -1))
+					break;
+				_wsetlocale(LC_ALL, L"korean");
+				const char* setname = lua_tostring(L, -1);
+				std::vector<wchar_t> vec;
+				size_t len = strlen(setname);
+				vec.resize(len + 1);
+				mbstowcs(&vec[0], setname, len);
+				const wchar_t* wsetname = &vec[0];
+				BufferIO::CopyWStrRef(wsetname, p, 32);
+				*p = L'|';
+				*++p = 0;
+				++i;
+			}
+		}
+	}
+	lua_close(L);
 	if(p != scBuffer)
 		*(p - 1) = 0;
 	else
