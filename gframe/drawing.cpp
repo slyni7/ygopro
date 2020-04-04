@@ -87,7 +87,7 @@ void Game::DrawBackGround() {
 	//draw field spell card
 	driver->setTransform(irr::video::ETS_WORLD, irr::core::IdentityMatrix);
 	bool drawField = false;
-	int rule = (dInfo.duel_rule >= 4) ? 1 : 0;
+	int rule = (mainGame->dInfo.duel_rule >= 4) ? (mainGame->dInfo.duel_rule >= 64 ? 2 : 1) : 0;
 	if(gameConf.draw_field_spell) {
 		int fieldcode1 = -1;
 		int fieldcode2 = -1;
@@ -154,28 +154,28 @@ void Game::DrawBackGround() {
 		/*float cv[4] = {0.0f, 0.0f, 1.0f, 1.0f};*/
 		unsigned int filter = 0x1;
 		for (int i = 0; i < 7; ++i, filter <<= 1) {
-			if (dField.disabled_field & filter) {
+			if ((dField.disabled_field & filter) && !((filter & 0x11) && (rule == 2))) {
 				driver->draw3DLine(matManager.vFieldMzone[0][i][0].Pos, matManager.vFieldMzone[0][i][3].Pos, 0xffffffff);
 				driver->draw3DLine(matManager.vFieldMzone[0][i][1].Pos, matManager.vFieldMzone[0][i][2].Pos, 0xffffffff);
 			}
 		}
 		filter = 0x100;
 		for (int i = 0; i < 8; ++i, filter <<= 1) {
-			if (dField.disabled_field & filter) {
+			if ((dField.disabled_field & filter) && !((filter & 0x1100) && (rule == 2))) {
 				driver->draw3DLine(matManager.vFieldSzone[0][i][rule][0].Pos, matManager.vFieldSzone[0][i][rule][3].Pos, 0xffffffff);
 				driver->draw3DLine(matManager.vFieldSzone[0][i][rule][1].Pos, matManager.vFieldSzone[0][i][rule][2].Pos, 0xffffffff);
 			}
 		}
 		filter = 0x10000;
 		for (int i = 0; i < 7; ++i, filter <<= 1) {
-			if (dField.disabled_field & filter) {
+			if ((dField.disabled_field & filter) && !((filter & 0x110000) && (rule == 2))) {
 				driver->draw3DLine(matManager.vFieldMzone[1][i][0].Pos, matManager.vFieldMzone[1][i][3].Pos, 0xffffffff);
 				driver->draw3DLine(matManager.vFieldMzone[1][i][1].Pos, matManager.vFieldMzone[1][i][2].Pos, 0xffffffff);
 			}
 		}
 		filter = 0x1000000;
 		for (int i = 0; i < 8; ++i, filter <<= 1) {
-			if (dField.disabled_field & filter) {
+			if ((dField.disabled_field & filter) && !((filter & 0x11000000) && (rule == 2))) {
 				driver->draw3DLine(matManager.vFieldSzone[1][i][rule][0].Pos, matManager.vFieldSzone[1][i][rule][3].Pos, 0xffffffff);
 				driver->draw3DLine(matManager.vFieldSzone[1][i][rule][1].Pos, matManager.vFieldSzone[1][i][rule][2].Pos, 0xffffffff);
 			}
@@ -187,7 +187,7 @@ void Game::DrawBackGround() {
 		&& !(dInfo.duel_rule >= 4 && dField.hovered_location == LOCATION_SZONE && dField.hovered_sequence > 5)) {
 		S3DVertex *vertex = 0;
 		if (dField.hovered_location == LOCATION_DECK)
-			vertex = matManager.vFieldDeck[dField.hovered_controler];
+			vertex = matManager.vFieldDeck[dField.hovered_controler][rule];
 		else if (dField.hovered_location == LOCATION_MZONE) {
 			vertex = matManager.vFieldMzone[dField.hovered_controler][dField.hovered_sequence];
 			ClientCard* pcard = dField.mzone[dField.hovered_controler][dField.hovered_sequence];
@@ -207,7 +207,7 @@ void Game::DrawBackGround() {
 		else if (dField.hovered_location == LOCATION_REMOVED)
 			vertex = matManager.vFieldRemove[dField.hovered_controler][rule];
 		else if (dField.hovered_location == LOCATION_EXTRA)
-			vertex = matManager.vFieldExtra[dField.hovered_controler];
+			vertex = matManager.vFieldExtra[dField.hovered_controler][rule];
 		selFieldAlpha += selFieldDAlpha;
 		if (selFieldAlpha <= 5) {
 			selFieldAlpha = 5;
@@ -445,15 +445,15 @@ void Game::DrawShadowText(CGUITTFont * font, const core::stringw & text, const c
 }
 void Game::DrawMisc() {
 	static irr::core::vector3df act_rot(0, 0, 0);
-	int rule = (dInfo.duel_rule >= 4) ? 1 : 0;
+	int rule = (mainGame->dInfo.duel_rule >= 4) ? (mainGame->dInfo.duel_rule >= 64 ? 2 : 1) : 0;
 	irr::core::matrix4 im, ic, it;
 	act_rot.Z += 0.02f;
 	im.setRotationRadians(act_rot);
 	matManager.mTexture.setTexture(0, imageManager.tAct);
 	driver->setMaterial(matManager.mTexture);
 	if(dField.deck_act) {
-		im.setTranslation(vector3df((matManager.vFieldDeck[0][0].Pos.X + matManager.vFieldDeck[0][1].Pos.X) / 2,
-			(matManager.vFieldDeck[0][0].Pos.Y + matManager.vFieldDeck[0][2].Pos.Y) / 2, dField.deck[0].size() * 0.01f + 0.02f));
+		im.setTranslation(vector3df((matManager.vFieldDeck[0][rule][0].Pos.X + matManager.vFieldDeck[0][rule][1].Pos.X) / 2,
+			(matManager.vFieldDeck[0][rule][0].Pos.Y + matManager.vFieldDeck[0][rule][2].Pos.Y) / 2, dField.deck[0].size() * 0.01f + 0.02f));
 		driver->setTransform(irr::video::ETS_WORLD, im);
 		driver->drawVertexPrimitiveList(matManager.vActivate, 4, matManager.iRectangle, 2);
 	}
@@ -470,8 +470,8 @@ void Game::DrawMisc() {
 		driver->drawVertexPrimitiveList(matManager.vActivate, 4, matManager.iRectangle, 2);
 	}
 	if(dField.extra_act) {
-		im.setTranslation(vector3df((matManager.vFieldExtra[0][0].Pos.X + matManager.vFieldExtra[0][1].Pos.X) / 2,
-			(matManager.vFieldExtra[0][0].Pos.Y + matManager.vFieldExtra[0][2].Pos.Y) / 2, dField.extra[0].size() * 0.01f + 0.02f));
+		im.setTranslation(vector3df((matManager.vFieldExtra[0][rule][0].Pos.X + matManager.vFieldExtra[0][rule][1].Pos.X) / 2,
+			(matManager.vFieldExtra[0][rule][0].Pos.Y + matManager.vFieldExtra[0][rule][2].Pos.Y) / 2, dField.extra[0].size() * 0.01f + 0.02f));
 		driver->setTransform(irr::video::ETS_WORLD, im);
 		driver->drawVertexPrimitiveList(matManager.vActivate, 4, matManager.iRectangle, 2);
 	}
@@ -673,13 +673,24 @@ void Game::DrawMisc() {
 			DrawShadowText(adFont, pcard->rscstring, Resize(499, 223, 531, 243), Resize(1, 1, 1, 1), 0xffffffff, 0xff000000, true, false, 0);
 		}
 	}
-	if(dField.extra[0].size()) {
-		int offset = (dField.extra[0].size() >= 10) ? 0 : numFont->getDimension(dataManager.GetNumString(1)).Width;
-		DrawShadowText(numFont, dataManager.GetNumString(dField.extra[0].size()), Resize(320, 563, 373, 553, offset, 0, 0, 0), Resize(0, 1, 2, 1), 0xffffff00, 0xff000000, true, false, 0);
-		DrawShadowText(numFont, dataManager.GetNumString(dField.extra_p_count[0], true), Resize(340, 563, 393, 553), Resize(0, 1, 2, 1), 0xffffff00, 0xff000000, true, false, 0);
-	}
-	if(dField.deck[0].size()) {
-		DrawShadowText(numFont, dataManager.GetNumString(dField.deck[0].size()), Resize(908, 563, 1023, 553), Resize(0, 1, 2, 1), 0xffffff00, 0xff000000, true, false, 0);
+	if (rule <= 1) {
+		if(dField.extra[0].size()) {
+			int offset = (dField.extra[0].size() >= 10) ? 0 : numFont->getDimension(dataManager.GetNumString(1)).Width;
+			DrawShadowText(numFont, dataManager.GetNumString(dField.extra[0].size()), Resize(320, 563, 373, 553, offset, 0, 0, 0), Resize(0, 1, 2, 1), 0xffffff00, 0xff000000, true, false, 0);
+			DrawShadowText(numFont, dataManager.GetNumString(dField.extra_p_count[0], true), Resize(340, 563, 393, 553), Resize(0, 1, 2, 1), 0xffffff00, 0xff000000, true, false, 0);
+		}
+		if(dField.deck[0].size()) {
+			DrawShadowText(numFont, dataManager.GetNumString(dField.deck[0].size()), Resize(908, 563, 1023, 553), Resize(0, 1, 2, 1), 0xffffff00, 0xff000000, true, false, 0);
+		}
+	} else {
+		if(dField.extra[0].size()) {
+			int offset = (dField.extra[0].size() >= 10) ? 0 : numFont->getDimension(dataManager.GetNumString(1)).Width;
+			DrawShadowText(numFont, dataManager.GetNumString(dField.extra[0].size()), Resize(420, 563, 473, 553, offset, 0, 0, 0), Resize(0, 1, 2, 1), 0xffffff00, 0xff000000, true, false, 0);
+			DrawShadowText(numFont, dataManager.GetNumString(dField.extra_p_count[0], true), Resize(440, 563, 493, 553), Resize(0, 1, 2, 1), 0xffffff00, 0xff000000, true, false, 0);
+		}
+		if(dField.deck[0].size()) {
+			DrawShadowText(numFont, dataManager.GetNumString(dField.deck[0].size()), Resize(808, 563, 923, 553), Resize(0, 1, 2, 1), 0xffffff00, 0xff000000, true, false, 0);
+		}
 	}
 	if (rule == 0) {
 		if (dField.grave[0].size()) {
@@ -688,21 +699,39 @@ void Game::DrawMisc() {
 		if (dField.remove[0].size()) {
 			DrawShadowText(numFont, dataManager.GetNumString(dField.remove[0].size()), Resize(1015, 376, 959, 381), Resize(0, 1, 2, 1), 0xffffff00, 0xff000000, true, false, 0);
 		}
-	} else {
+	} else if (rule == 1) {
 		if (dField.grave[0].size()) {
 			DrawShadowText(numFont, dataManager.GetNumString(dField.grave[0].size()), Resize(870, 457, 1004, 462), Resize(0, 1, 2, 1), 0xffffff00, 0xff000000, true, false, 0);
 		}
 		if (dField.remove[0].size()) {
 			DrawShadowText(numFont, dataManager.GetNumString(dField.remove[0].size()), Resize(837, 376, 986, 381), Resize(0, 1, 2, 1), 0xffffff00, 0xff000000, true, false, 0);
 		}
+	} else {
+		if (dField.grave[0].size()) {
+			DrawShadowText(numFont, dataManager.GetNumString(dField.grave[0].size()), Resize(780, 457, 914, 462), Resize(0, 1, 2, 1), 0xffffff00, 0xff000000, true, false, 0);
+		}
+		if (dField.remove[0].size()) {
+			DrawShadowText(numFont, dataManager.GetNumString(dField.remove[0].size()), Resize(757, 376, 906, 381), Resize(0, 1, 2, 1), 0xffffff00, 0xff000000, true, false, 0);
+		}
 	}
-	if(dField.extra[1].size()) {
-		int offset = (dField.extra[1].size() >= 10) ? 0 : numFont->getDimension(dataManager.GetNumString(1)).Width;
-		DrawShadowText(numFont, dataManager.GetNumString(dField.extra[1].size()), Resize(808, 208, 900, 233, offset, 0, 0, 0), Resize(0, 1, 2, 1), 0xffffff00, 0xff000000, true, false, 0);
-		DrawShadowText(numFont, dataManager.GetNumString(dField.extra_p_count[1], true), Resize(828, 208, 920, 233), Resize(0, 1, 2, 1), 0xffffff00, 0xff000000, true, false, 0);
-	}
-	if(dField.deck[1].size()) {
-		DrawShadowText(numFont, dataManager.GetNumString(dField.deck[1].size()), Resize(465, 208, 483, 233), Resize(0, 1, 2, 1), 0xffffff00, 0xff000000, true, false, 0);
+	if (rule <= 1) {
+		if(dField.extra[1].size()) {
+			int offset = (dField.extra[1].size() >= 10) ? 0 : numFont->getDimension(dataManager.GetNumString(1)).Width;
+			DrawShadowText(numFont, dataManager.GetNumString(dField.extra[1].size()), Resize(808, 208, 900, 233, offset, 0, 0, 0), Resize(0, 1, 2, 1), 0xffffff00, 0xff000000, true, false, 0);
+			DrawShadowText(numFont, dataManager.GetNumString(dField.extra_p_count[1], true), Resize(828, 208, 920, 233), Resize(0, 1, 2, 1), 0xffffff00, 0xff000000, true, false, 0);
+		}
+		if(dField.deck[1].size()) {
+			DrawShadowText(numFont, dataManager.GetNumString(dField.deck[1].size()), Resize(465, 208, 483, 233), Resize(0, 1, 2, 1), 0xffffff00, 0xff000000, true, false, 0);
+		}
+	} else {
+		if(dField.extra[1].size()) {
+			int offset = (dField.extra[1].size() >= 10) ? 0 : numFont->getDimension(dataManager.GetNumString(1)).Width;
+			DrawShadowText(numFont, dataManager.GetNumString(dField.extra[1].size()), Resize(748, 208, 840, 233, offset, 0, 0, 0), Resize(0, 1, 2, 1), 0xffffff00, 0xff000000, true, false, 0);
+			DrawShadowText(numFont, dataManager.GetNumString(dField.extra_p_count[1], true), Resize(768, 208, 860, 233), Resize(0, 1, 2, 1), 0xffffff00, 0xff000000, true, false, 0);
+		}
+		if(dField.deck[1].size()) {
+			DrawShadowText(numFont, dataManager.GetNumString(dField.deck[1].size()), Resize(525, 208, 543, 233), Resize(0, 1, 2, 1), 0xffffff00, 0xff000000, true, false, 0);
+		}
 	}
 	if (rule == 0) {
 		if (dField.grave[1].size()) {
@@ -711,12 +740,19 @@ void Game::DrawMisc() {
 		if (dField.remove[1].size()) {
 			DrawShadowText(numFont, dataManager.GetNumString(dField.remove[1].size()), Resize(300, 311, 445, 341), Resize(0, 1, 2, 1), 0xffffff00, 0xff000000, true, false, 0);
 		}
-	} else {
+	} else if (rule == 1) {
 		if (dField.grave[1].size()) {
 			DrawShadowText(numFont, dataManager.GetNumString(dField.grave[1].size()), Resize(455, 250, 464, 300), Resize(0, 1, 2, 1), 0xffffff00, 0xff000000, true, false, 0);
 		}
 		if (dField.remove[1].size()) {
 			DrawShadowText(numFont, dataManager.GetNumString(dField.remove[1].size()), Resize(420, 311, 464, 282), Resize(0, 1, 2, 1), 0xffffff00, 0xff000000, true, false, 0);
+		}
+	} else {
+		if (dField.grave[1].size()) {
+			DrawShadowText(numFont, dataManager.GetNumString(dField.grave[1].size()), Resize(525, 250, 534, 300), Resize(0, 1, 2, 1), 0xffffff00, 0xff000000, true, false, 0);
+		}
+		if (dField.remove[1].size()) {
+			DrawShadowText(numFont, dataManager.GetNumString(dField.remove[1].size()), Resize(500, 311, 544, 282), Resize(0, 1, 2, 1), 0xffffff00, 0xff000000, true, false, 0);
 		}
 	}
 }

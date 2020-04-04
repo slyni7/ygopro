@@ -771,11 +771,11 @@ void ClientField::GetChainLocation(int controler, int location, int sequence, ir
 	t->X = 0;
 	t->Y = 0;
 	t->Z = 0;
-	int rule = (mainGame->dInfo.duel_rule >= 4) ? 1 : 0;
+	int rule = (mainGame->dInfo.duel_rule >= 4) ? (mainGame->dInfo.duel_rule >= 64 ? 2 : 1) : 0;
 	switch((location & 0x7f)) {
 	case LOCATION_DECK: {
-		t->X = (matManager.vFieldDeck[controler][0].Pos.X + matManager.vFieldDeck[controler][1].Pos.X) / 2;
-		t->Y = (matManager.vFieldDeck[controler][0].Pos.Y + matManager.vFieldDeck[controler][2].Pos.Y) / 2;
+		t->X = (matManager.vFieldDeck[controler][rule][0].Pos.X + matManager.vFieldDeck[controler][rule][1].Pos.X) / 2;
+		t->Y = (matManager.vFieldDeck[controler][rule][0].Pos.Y + matManager.vFieldDeck[controler][rule][2].Pos.Y) / 2;
 		t->Z = deck[controler].size() * 0.01f + 0.03f;
 		break;
 	}
@@ -816,8 +816,8 @@ void ClientField::GetChainLocation(int controler, int location, int sequence, ir
 		break;
 	}
 	case LOCATION_EXTRA: {
-		t->X = (matManager.vFieldExtra[controler][0].Pos.X + matManager.vFieldExtra[controler][1].Pos.X) / 2;
-		t->Y = (matManager.vFieldExtra[controler][0].Pos.Y + matManager.vFieldExtra[controler][2].Pos.Y) / 2;
+		t->X = (matManager.vFieldExtra[controler][rule][0].Pos.X + matManager.vFieldExtra[controler][rule][1].Pos.X) / 2;
+		t->Y = (matManager.vFieldExtra[controler][rule][0].Pos.Y + matManager.vFieldExtra[controler][rule][2].Pos.Y) / 2;
 		t->Z = extra[controler].size() * 0.01f + 0.03f;
 		break;
 	}
@@ -827,11 +827,11 @@ void ClientField::GetCardLocation(ClientCard* pcard, irr::core::vector3df* t, ir
 	int controler = pcard->controler;
 	int sequence = pcard->sequence;
 	int location = pcard->location;
-	int rule = (mainGame->dInfo.duel_rule >= 4) ? 1 : 0;
+	int rule = (mainGame->dInfo.duel_rule >= 4) ? (mainGame->dInfo.duel_rule >= 64 ? 2 : 1) : 0;
 	switch (location) {
 	case LOCATION_DECK: {
-		t->X = (matManager.vFieldDeck[controler][0].Pos.X + matManager.vFieldDeck[controler][1].Pos.X) / 2;
-		t->Y = (matManager.vFieldDeck[controler][0].Pos.Y + matManager.vFieldDeck[controler][2].Pos.Y) / 2;
+		t->X = (matManager.vFieldDeck[controler][rule][0].Pos.X + matManager.vFieldDeck[controler][rule][1].Pos.X) / 2;
+		t->Y = (matManager.vFieldDeck[controler][rule][0].Pos.Y + matManager.vFieldDeck[controler][rule][2].Pos.Y) / 2;
 		t->Z = 0.01f + 0.01f * sequence;
 		if (controler == 0) {
 			if(deck_reversed == pcard->is_reversed) {
@@ -859,47 +859,94 @@ void ClientField::GetCardLocation(ClientCard* pcard, irr::core::vector3df* t, ir
 	case 0:
 	case LOCATION_HAND: {
 		int count = hand[controler].size();
-		if (controler == 0) {
-			if (count <= 6)
-				t->X = (5.5f - 0.8f * count) / 2 + 1.55f + sequence * 0.8f;
-			else
-				t->X = 1.9f + sequence * 4.0f / (count - 1);
-			if (pcard->is_hovered) {
-				t->Y = 3.84f;
-				t->Z = 0.656f + 0.001f * sequence;
+		if (rule <= 1) {
+			if (controler == 0) {
+				if (count <= 6)
+					t->X = (5.5f - 0.8f * count) / 2 + 1.55f + sequence * 0.8f;
+				else
+					t->X = 1.9f + sequence * 4.0f / (count - 1);
+				if (pcard->is_hovered) {
+					t->Y = 3.84f;
+					t->Z = 0.656f + 0.001f * sequence;
+				} else {
+					t->Y = 4.0f;
+					t->Z = 0.5f + 0.001f * sequence;
+				}
+				if(pcard->code) {
+					r->X = -0.798056f;
+					r->Y = 0.0f;
+					r->Z = 0.0f;
+				} else {
+					r->X = 0.798056f;
+					r->Y = 3.1415926f;
+					r->Z = 0;
+				}
 			} else {
-				t->Y = 4.0f;
-				t->Z = 0.5f + 0.001f * sequence;
+				if (count <= 6)
+					t->X = 6.25f - (5.5f - 0.8f * count) / 2 - sequence * 0.8f;
+				else
+					t->X = 5.9f - sequence * 4.0f / (count - 1);
+				if (pcard->is_hovered) {
+					t->Y = -3.56f;
+					t->Z = 0.656f - 0.001f * sequence;
+				} else {
+					t->Y = -3.4f;
+					t->Z = 0.5f - 0.001f * sequence;
+				}
+				if (pcard->code == 0) {
+					r->X = 0.798056f;
+					r->Y = 3.1415926f;
+					r->Z = 0;
+				} else {
+					r->X = -0.798056f;
+					r->Y = 0;
+					r->Z = 0;
+				}
 			}
-			if(pcard->code) {
-				r->X = -0.798056f;
-				r->Y = 0.0f;
-				r->Z = 0.0f;
+		}
+		else {
+			if (controler == 0) {
+				if (count <= 4)
+					t->X = (5.5f - 0.8f * count) / 2 + 1.55f + sequence * 0.8f;
+				else
+					t->X = 2.7f + sequence * 2.4f / (count - 1);
+				if (pcard->is_hovered) {
+					t->Y = 3.84f;
+					t->Z = 0.656f + 0.001f * sequence;
+				} else {
+					t->Y = 4.0f;
+					t->Z = 0.5f + 0.001f * sequence;
+				}
+				if(pcard->code) {
+					r->X = -0.798056f;
+					r->Y = 0.0f;
+					r->Z = 0.0f;
+				} else {
+					r->X = 0.798056f;
+					r->Y = 3.1415926f;
+					r->Z = 0;
+				}
 			} else {
-				r->X = 0.798056f;
-				r->Y = 3.1415926f;
-				r->Z = 0;
-			}
-		} else {
-			if (count <= 6)
-				t->X = 6.25f - (5.5f - 0.8f * count) / 2 - sequence * 0.8f;
-			else
-				t->X = 5.9f - sequence * 4.0f / (count - 1);
-			if (pcard->is_hovered) {
-				t->Y = -3.56f;
-				t->Z = 0.656f - 0.001f * sequence;
-			} else {
-				t->Y = -3.4f;
-				t->Z = 0.5f - 0.001f * sequence;
-			}
-			if (pcard->code == 0) {
-				r->X = 0.798056f;
-				r->Y = 3.1415926f;
-				r->Z = 0;
-			} else {
-				r->X = -0.798056f;
-				r->Y = 0;
-				r->Z = 0;
+				if (count <= 4)
+					t->X = 6.25f - (5.5f - 0.8f * count) / 2 - sequence * 0.8f;
+				else
+					t->X = 5.1f - sequence * 2.4f / (count - 1);
+				if (pcard->is_hovered) {
+					t->Y = -3.56f;
+					t->Z = 0.656f - 0.001f * sequence;
+				} else {
+					t->Y = -3.4f;
+					t->Z = 0.5f - 0.001f * sequence;
+				}
+				if (pcard->code == 0) {
+					r->X = 0.798056f;
+					r->Y = 3.1415926f;
+					r->Z = 0;
+				} else {
+					r->X = -0.798056f;
+					r->Y = 0;
+					r->Z = 0;
+				}
 			}
 		}
 		break;
@@ -1001,8 +1048,8 @@ void ClientField::GetCardLocation(ClientCard* pcard, irr::core::vector3df* t, ir
 		break;
 	}
 	case LOCATION_EXTRA: {
-		t->X = (matManager.vFieldExtra[controler][0].Pos.X + matManager.vFieldExtra[controler][1].Pos.X) / 2;
-		t->Y = (matManager.vFieldExtra[controler][0].Pos.Y + matManager.vFieldExtra[controler][2].Pos.Y) / 2;
+		t->X = (matManager.vFieldExtra[controler][rule][0].Pos.X + matManager.vFieldExtra[controler][rule][1].Pos.X) / 2;
+		t->Y = (matManager.vFieldExtra[controler][rule][0].Pos.Y + matManager.vFieldExtra[controler][rule][2].Pos.Y) / 2;
 		t->Z = 0.01f + 0.01f * sequence;
 		if (controler == 0) {
 			r->X = 0.0f;
