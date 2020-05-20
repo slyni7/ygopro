@@ -186,6 +186,30 @@ const wchar_t* DataManager::GetText(int code) {
 	return unknown_string;
 }
 const wchar_t* DataManager::GetDesc(int strCode) {
+	if (strCode < 0) {
+		wchar_t* p = descBuffer;
+		unsigned int ustrCode = strCode;
+		lua_State* L = luaL_newstate();
+		if (!(luaL_dofile(L, "expansions/desc.lua"))) {
+			lua_getglobal(L, "data_manager_desc");
+			if (!lua_isnil(L, -1)) {
+				lua_pushinteger(L, ustrCode);
+				lua_call(L, 1, 1);
+				if (lua_isstring(L, -1)) {
+					_wsetlocale(LC_ALL, L"korean");
+					const char* descstr = lua_tostring(L, -1);
+					std::vector<wchar_t> vec;
+					size_t len = strlen(descstr);
+					vec.resize(len + 1);
+					mbstowcs(&vec[0], descstr, len);
+					const wchar_t* wdescstr = &vec[0];
+					BufferIO::CopyWStrRef(wdescstr, p, 32);
+				}
+			}
+		}
+		lua_close(L);
+		return descBuffer;
+	}
 	if(strCode < 10000)
 		return GetSysString(strCode);
 	int code = strCode >> 4;

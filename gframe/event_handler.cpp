@@ -1611,7 +1611,10 @@ bool ClientField::OnEvent(const irr::SEvent& event) {
 								str.append(formatBuffer);
 							}
 							for(auto iter = mcard->desc_hints.begin(); iter != mcard->desc_hints.end(); ++iter) {
-								myswprintf(formatBuffer, L"\n*%ls", dataManager.GetDesc(iter->first));
+								if(iter->first < 0)
+									myswprintf(formatBuffer, L"\n%ls", dataManager.GetDesc(iter->first));
+								else
+									myswprintf(formatBuffer, L"\n*%ls", dataManager.GetDesc(iter->first));
 								str.append(formatBuffer);
 							}
 							should_show_tip = true;
@@ -1643,7 +1646,10 @@ bool ClientField::OnEvent(const irr::SEvent& event) {
 					std::wstring str(player_name);
 					const auto& player_desc_hints = mainGame->dField.player_desc_hints[mplayer];
 					for(auto iter = player_desc_hints.begin(); iter != player_desc_hints.end(); ++iter) {
-						myswprintf(formatBuffer, L"\n*%ls", dataManager.GetDesc(iter->first));
+						if(iter->first < 0)
+							myswprintf(formatBuffer, L"\n%ls", dataManager.GetDesc(iter->first));
+						else
+							myswprintf(formatBuffer, L"\n*%ls", dataManager.GetDesc(iter->first));
 						str.append(formatBuffer);
 					}
 					should_show_tip = true;
