@@ -109,6 +109,8 @@ public:
 	wchar_t linkstring[16];
 	wchar_t lscstring[16];
 	wchar_t rscstring[16];
+	s32 square_count;
+	s32 square_mana[64];
 
 	ClientCard();
 	void SetCode(int code);

@@ -294,6 +294,11 @@ const wchar_t* DataManager::FormatAttribute(int attribute) {
 			*++p = 0;
 		}
 	}
+	if(attribute == 0) {
+		BufferIO::CopyWStrRef(GetSysString(1017), p, 16);
+		*p = L'|';
+		*++p = 0;
+	}
 	if(p != attBuffer)
 		*(p - 1) = 0;
 	else

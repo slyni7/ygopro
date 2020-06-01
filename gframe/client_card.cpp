@@ -185,6 +185,12 @@ void ClientCard::UpdateInfo(char* buf) {
 			link_marker = pdata;
 		}
 	}
+	if(flag & QUERY_SQUARE) {
+		square_count = BufferIO::ReadInt32(buf);
+		for (int i = 0; i < square_count; i++) {
+			square_mana[i] = BufferIO::ReadInt32(buf);
+		}
+	}
 }
 void ClientCard::ClearTarget() {
 	for(auto cit = cardTarget.begin(); cit != cardTarget.end(); ++cit) {

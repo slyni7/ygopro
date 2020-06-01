@@ -1593,6 +1593,16 @@ bool ClientField::OnEvent(const irr::SEvent& event) {
 									str.append(formatBuffer);
 								}
 							}
+							if(mcard->location == LOCATION_MZONE && mcard->square_count) {
+								for(int i = 0; i < mcard->square_count; ++i) {
+									if (i % 6 == 0) {
+										myswprintf(formatBuffer, L"\n");
+										str.append(formatBuffer);
+									}										
+									myswprintf(formatBuffer, L"[%ls]", dataManager.FormatAttribute(mcard->square_mana[i]));
+									str.append(formatBuffer);
+								}
+							}
 							for(auto ctit = mcard->counters.begin(); ctit != mcard->counters.end(); ++ctit) {
 								myswprintf(formatBuffer, L"\n[%ls]: %d", dataManager.GetCounterName(ctit->first), ctit->second);
 								str.append(formatBuffer);
