@@ -1594,7 +1594,7 @@ bool ClientField::OnEvent(const irr::SEvent& event) {
 								}
 							}
 							if(mcard->location == LOCATION_MZONE && mcard->square_count) {
-								for(int i = 0; i < mcard->square_count; ++i) {
+								for(int i = 0; ((i < mcard->square_count) && (i < 64)); ++i) {
 									if (i % 6 == 0) {
 										myswprintf(formatBuffer, L"\n");
 										str.append(formatBuffer);
