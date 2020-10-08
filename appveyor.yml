@@ -1,5 +1,5 @@
 version: '{build}'
-image: Visual Studio 2017
+image: Visual Studio 2019
 
 environment:
   irrklang_pro: 1
@@ -45,7 +45,7 @@ install:
   - patch -p0 < irrlicht\irrlicht.patch
 
   # premake
-  - premake5 vs2017
+  - premake5 vs2019
   
 configuration: Release
 
@@ -59,9 +59,8 @@ after_build:
   - bash -c "curl --retry 5 --connect-timeout 30 --location --remote-header-name --remote-name https://github.com/purerosefallen/windbot/releases/download/latest/WindBot.7z ; exit 0"
   - 7z x -y WindBot.7z
 
-  - bash -c "curl --retry 5 --connect-timeout 30 --location --remote-header-name --remote-name https://code.mycard.moe/nanahira/ygopro-images/-/archive/master/ygopro-images-master.zip ; exit 0"
-  - 7z x -y ygopro-images-master.zip
-  - mv -f ygopro-images-master pics
+  - bash -c "curl --retry 5 --connect-timeout 30 --location --remote-header-name --remote-name https://s.my-card.in:444/images/ygopro-images-zh-CN.zip ; exit 0"
+  - 7z x -y -opics ygopro-images-zh-CN.zip
 
   - bash -c "curl --retry 5 --connect-timeout 30 --location --remote-header-name --remote-name https://github.com/purerosefallen/update-koishipro/archive/master.zip ; exit 0"
   - 7z x -y update-koishipro-master.zip

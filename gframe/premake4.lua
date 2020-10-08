@@ -50,10 +50,10 @@ project "irepro"
     configuration "not windows"
         includedirs { "/usr/include/freetype2" }
         excludes { "COSOperator.*" }
-        links { "lua5.3-c++", "event_pthreads", "GL", "dl", "pthread" }
+        links { "event_pthreads", "GL", "dl", "pthread" }
     configuration "linux"
         includedirs { "../irrlicht_linux/include" }
-        links { "X11", "Xxf86vm" }
+        links { "lua5.3-c++", "X11", "Xxf86vm" }
         if USE_IRRKLANG then
             links { "IrrKlang" }
             linkoptions{ "-Wl,-rpath=./" }
@@ -61,6 +61,7 @@ project "irepro"
         end
     configuration "macosx"
         includedirs { "/usr/include/irrlicht" }
+        links { "lua" }
         if USE_IRRKLANG then
             links { "irrklang" }
             libdirs { "../irrklang/bin/macosx-gcc" }

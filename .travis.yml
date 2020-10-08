@@ -4,7 +4,7 @@ os:
 - osx
 sudo: required
 dist: bionic
-osx_image: xcode9.4
+osx_image: xcode10.3
 addons:
   ssh_known_hosts:
   - github.com
@@ -23,14 +23,15 @@ before_install:
 - git submodule update --init --recursive
 - if [[ "$TRAVIS_OS_NAME" == "osx" ]]; then 
   brew update;
-  brew install freetype libevent sqlite dylibbundler p7zip lua;
+  brew install freetype libevent sqlite dylibbundler p7zip;
   sudo cp -r /usr/local/include/freetype2 ./freetype2;
   sudo cp -r /usr/local/include/event2 ./event2;
-  sudo cp -r /usr/local/include/lua ./lua;
   sudo rm -rf /usr/local/include/*;
   sudo cp -r ./freetype2 /usr/local/include/freetype2;
   sudo cp -r ./event2 /usr/local/include/event2;
-  sudo cp -r ./lua /usr/local/include/lua;
+  curl --retry 5 --location https://www.lua.org/ftp/lua-5.3.5.tar.gz | tar zfx -;
+  mv lua-5.3.5/src lua;
+  cp premake/lua/premake4.lua lua/;
   fi
 
 - if [[ "$TRAVIS_OS_NAME" == "osx" ]]; then mkdir irrlicht ; cd irrlicht ; curl --retry 5 --location https://github.com/moecube/irrlicht/releases/download/test/irrlicht-mycard-mac.tar.gz | tar zfx - ; cp libIrrlicht.a /usr/local/lib/ ; sudo cp -r include /usr/local/include/irrlicht ; cd .. ; fi
@@ -39,7 +40,7 @@ before_install:
     curl --location --retry 5 https://github.com/premake/premake-core/releases/download/v5.0.0-alpha12/premake-5.0.0-alpha12-macosx.tar.gz | tar zfx -;
   fi
 - if [[ "$TRAVIS_OS_NAME" == "linux" ]]; then
-    git clone --depth=1 https://github.com/DailyShana/irrlicht irrlicht_linux;
+    git clone --depth=1 https://code.mycard.moe/mycard/irrlicht irrlicht_linux;
     curl --location --retry 5 https://github.com/premake/premake-core/releases/download/v5.0.0-alpha14/premake-5.0.0-alpha14-linux.tar.gz | tar zfx -;
   fi
 
@@ -85,9 +86,8 @@ before_deploy:
     7z a -mx9 -xr!.git* KoishiPro-$TRAVIS_OS_NAME-$TRAVIS_TAG.zip ygopro.app;
   fi
 
-- curl --retry 5 --connect-timeout 30 --location --remote-header-name --remote-name https://code.mycard.moe/nanahira/ygopro-images/-/archive/master/ygopro-images-master.zip
-- 7z x -y ygopro-images-master.zip > /dev/null
-- mv -f ygopro-images-master pics
+- curl --retry 5 --connect-timeout 30 --location --remote-header-name --remote-name https://s.my-card.in:444/images/ygopro-images-zh-CN.zip
+- 7z x -y -opics ygopro-images-zh-CN.zip > /dev/null
 
 - curl --retry 5 --connect-timeout 30 --location --remote-header-name --remote-name https://github.com/moecube/ygopro-starter-pack/archive/master.zip
 - 7z x -y ygopro-starter-pack-master.zip > /dev/null

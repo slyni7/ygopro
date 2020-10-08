@@ -55,7 +55,9 @@ struct Config {
 	int window_height;
 	bool resize_popup_menu;
 	int auto_save_replay;
+	int draw_single_chain;
 	int prefer_expansion_script;
+	int ask_mset;
 	bool enable_sound;
 	bool enable_music;
 	double sound_volume;
@@ -161,6 +163,7 @@ public:
 	void WaitFrameSignal(int frame);
 	void DrawThumb(code_pointer cp, position2di pos, const std::unordered_map<int,int>* lflist, bool drag = false);
 	void DrawDeckBd();
+	bool LoadConfigFromFile(const char* file);
 	void LoadConfig();
 	void SaveConfig();
 	void ShowCardInfo(int code, bool resize = false);
@@ -172,6 +175,8 @@ public:
 	void ErrorLog(const char* msgbuf);
 	void initUtils();
 	void ClearTextures();
+	void CloseGameButtons();
+	void CloseGameWindow();
 	void CloseDuelWindow();
 
 	int LocalPlayer(int player);
@@ -183,6 +188,12 @@ public:
 	bool HasFocus(EGUI_ELEMENT_TYPE type) const {
 		irr::gui::IGUIElement* focus = env->getFocus();
 		return focus && focus->hasType(type);
+	}
+
+	void TrimText(irr::gui::IGUIElement* editbox) const {
+		irr::core::stringw text(editbox->getText());
+		text.trim();
+		editbox->setText(text.c_str());
 	}
 
 	void OnResize();
@@ -309,6 +320,8 @@ public:
 	irr::gui::IGUICheckBox* chkWaitChain;
 	irr::gui::IGUICheckBox* chkQuickAnimation;
 	irr::gui::IGUICheckBox* chkAutoSaveReplay;
+	irr::gui::IGUICheckBox* chkDrawSingleChain;
+	irr::gui::IGUICheckBox* chkAskMSet;
 	irr::gui::IGUIWindow* tabSystem;
 	irr::gui::IGUIElement* elmTabSystemLast;
 	irr::gui::IGUIScrollBar* scrTabSystem;
@@ -601,6 +614,13 @@ public:
 	irr::gui::IGUIButton* btnChainWhenAvail;
 	//cancel or finish
 	irr::gui::IGUIButton* btnCancelOrFinish;
+	//big picture
+	irr::gui::IGUIWindow* wBigCard;
+	irr::gui::IGUIImage* imgBigCard;
+	irr::gui::IGUIButton* btnBigCardOriginalSize;
+	irr::gui::IGUIButton* btnBigCardZoomIn;
+	irr::gui::IGUIButton* btnBigCardZoomOut;
+	irr::gui::IGUIButton* btnBigCardClose;
 };
 
 extern Game* mainGame;
@@ -774,6 +794,7 @@ extern Game* mainGame;
 #define BUTTON_MARKS_FILTER			322
 #define BUTTON_MARKERS_OK			323
 #define COMBOBOX_SORTTYPE			324
+#define EDITBOX_INPUTS				325
 #define WINDOW_DECK_MANAGE			330
 #define BUTTON_NEW_CATEGORY			331
 #define BUTTON_RENAME_CATEGORY		332
@@ -806,8 +827,15 @@ extern Game* mainGame;
 #define SCROLL_TAB_SYSTEM			371
 #define CHECKBOX_MULTI_KEYWORDS		372
 #define CHECKBOX_PREFER_EXPANSION	373
-#define CHECKBOX_REGEX				374
-#define COMBOBOX_LOCALE				375
+#define CHECKBOX_DRAW_SINGLE_CHAIN	374
+#define CHECKBOX_REGEX				375
+#define COMBOBOX_LOCALE				376
+#define CHECKBOX_ASK_MSET			377
+
+#define BUTTON_BIG_CARD_CLOSE		380
+#define BUTTON_BIG_CARD_ZOOM_IN		381
+#define BUTTON_BIG_CARD_ZOOM_OUT	382
+#define BUTTON_BIG_CARD_ORIG_SIZE	383
 
 #define BUTTON_DECK_CODE			389
 #define BUTTON_DECK_CODE_SAVE		390
