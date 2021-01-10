@@ -1381,7 +1381,7 @@ int DuelClient::ClientAnalyze(char * msg, unsigned int len) {
 	case MSG_UPDATE_CARD: {
 		int player = mainGame->LocalPlayer(BufferIO::ReadInt8(pbuf));
 		int loc = BufferIO::ReadInt8(pbuf);
-		int seq = BufferIO::ReadInt8(pbuf);
+		uint8 seq = BufferIO::ReadInt8(pbuf);
 		mainGame->gMutex.lock();
 		mainGame->dField.UpdateCard(player, loc, seq, pbuf);
 		mainGame->gMutex.unlock();
@@ -2693,11 +2693,11 @@ int DuelClient::ClientAnalyze(char * msg, unsigned int len) {
 		unsigned int code = (unsigned int)BufferIO::ReadInt32(pbuf);
 		int pc = mainGame->LocalPlayer(BufferIO::ReadInt8(pbuf));
 		int pl = BufferIO::ReadUInt8(pbuf);
-		int ps = BufferIO::ReadInt8(pbuf);
+		int ps = BufferIO::ReadUInt8(pbuf);
 		int pp = BufferIO::ReadInt8(pbuf);
 		int cc = mainGame->LocalPlayer(BufferIO::ReadInt8(pbuf));
 		int cl = BufferIO::ReadUInt8(pbuf);
-		int cs = BufferIO::ReadInt8(pbuf);
+		int cs = BufferIO::ReadUInt8(pbuf);
 		int cp = BufferIO::ReadInt8(pbuf);
 		int reason = BufferIO::ReadInt32(pbuf);
 		if(!mainGame->dInfo.isReplaySkiping) {
@@ -2710,16 +2710,43 @@ int DuelClient::ClientAnalyze(char * msg, unsigned int len) {
 			ClientCard* pcard = new ClientCard();
 			pcard->position = cp;
 			pcard->SetCode(code);
-			if(!mainGame->dInfo.isReplaySkiping) {
-				mainGame->gMutex.lock();
-				mainGame->dField.AddCard(pcard, cc, cl, cs);
-				mainGame->gMutex.unlock();
-				mainGame->dField.GetCardLocation(pcard, &pcard->curPos, &pcard->curRot, true);
-				pcard->curAlpha = 5;
-				mainGame->dField.FadeCard(pcard, 255, 20);
-				mainGame->WaitFrameSignal(20);
-			} else
-				mainGame->dField.AddCard(pcard, cc, cl, cs);
+			if (!mainGame->dInfo.isReplaySkiping) {
+				if(!(cl & 0x80)) {
+					mainGame->gMutex.lock();
+					mainGame->dField.AddCard(pcard, cc, cl, cs);
+					mainGame->gMutex.unlock();
+					mainGame->dField.GetCardLocation(pcard, &pcard->curPos, &pcard->curRot, true);
+					pcard->curAlpha = 5;
+					mainGame->dField.FadeCard(pcard, 255, 20);
+					mainGame->WaitFrameSignal(20);
+				}
+				else {
+					ClientCard* olcard = mainGame->dField.GetCard(cc, cl & 0x7f, cs);
+					olcard->overlayed.push_back(pcard);
+					mainGame->dField.overlay_cards.insert(pcard);
+					pcard->overlayTarget = olcard;
+					pcard->location = 0x80;
+					pcard->sequence = olcard->overlayed.size() - 1;
+					if (olcard->location & 0x0c) {
+						mainGame->gMutex.lock();
+						mainGame->dField.MoveCard(pcard, 1);
+						mainGame->gMutex.unlock();
+						mainGame->WaitFrameSignal(5);
+					}
+				}
+			}
+			else {
+				if(!(cl & 0x80))
+					mainGame->dField.AddCard(pcard, cc, cl, cs);
+				else {
+					ClientCard* olcard = mainGame->dField.GetCard(cc, cl & 0x7f, cs);
+					olcard->overlayed.push_back(pcard);
+					mainGame->dField.overlay_cards.insert(pcard);
+					pcard->overlayTarget = olcard;
+					pcard->location = 0x80;
+					pcard->sequence = olcard->overlayed.size() - 1;
+				}
+			}
 		} else if (cl == 0) {
 			ClientCard* pcard = mainGame->dField.GetCard(pc, pl, ps);
 			if (code != 0 && pcard->code != code)
@@ -2899,16 +2926,16 @@ int DuelClient::ClientAnalyze(char * msg, unsigned int len) {
 		return true;
 	}
 	case MSG_MOVE_GROUP: {
-		int count = BufferIO::ReadUInt8(pbuf);
+		int count = BufferIO::ReadUInt32(pbuf);
 		for(int i = 0; i < count; i++) {
 			unsigned int code = (unsigned int)BufferIO::ReadInt32(pbuf);
 			int pc = mainGame->LocalPlayer(BufferIO::ReadInt8(pbuf));
 			int pl = BufferIO::ReadUInt8(pbuf);
-			int ps = BufferIO::ReadInt8(pbuf);
+			int ps = BufferIO::ReadUInt8(pbuf);
 			int pp = BufferIO::ReadInt8(pbuf);
 			int cc = mainGame->LocalPlayer(BufferIO::ReadInt8(pbuf));
 			int cl = BufferIO::ReadUInt8(pbuf);
-			int cs = BufferIO::ReadInt8(pbuf);
+			int cs = BufferIO::ReadUInt8(pbuf);
 			int cp = BufferIO::ReadInt8(pbuf);
 			int reason = BufferIO::ReadInt32(pbuf);
 			/* if(!mainGame->dInfo.isReplaySkiping) {
@@ -3399,7 +3426,7 @@ int DuelClient::ClientAnalyze(char * msg, unsigned int len) {
 		for (int i = 0; i < count; ++i) {
 			int c = mainGame->LocalPlayer(BufferIO::ReadInt8(pbuf));
 			int l = BufferIO::ReadInt8(pbuf);
-			int s = BufferIO::ReadInt8(pbuf);
+			int s = BufferIO::ReadUInt8(pbuf);
 			int ss = BufferIO::ReadInt8(pbuf);
 			if ((l & 0x80) > 0)
 				pcards[i] = mainGame->dField.GetCard(c, l & 0x7f, s)->overlayed[ss];

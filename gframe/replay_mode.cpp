@@ -544,7 +544,7 @@ bool ReplayMode::ReplayAnalyze(char* msg, unsigned int len) {
 			/*int pp = pbuf[7];*/
 			int cc = pbuf[8];
 			int cl = pbuf[9];
-			int cs = pbuf[10];
+			uint8 cs = pbuf[10];
 			/*int cp = pbuf[11];*/
 			pbuf += 16;
 			DuelClient::ClientAnalyze(offset, pbuf - offset);
@@ -553,14 +553,13 @@ bool ReplayMode::ReplayAnalyze(char* msg, unsigned int len) {
 			break;
 		}
 		case MSG_MOVE_GROUP: {
-			int count = pbuf[0];
-			pbuf += 1;
+			count = BufferIO::ReadUInt32(pbuf);
 			for(int i = 0; i < count; i++) {
-				int pc = pbuf[16 * i + 5];
-				int pl = pbuf[16 * i + 6];
-				int cc = pbuf[16 * i + 9];
-				int cl = pbuf[16 * i + 10];
-				int cs = pbuf[16 * i + 11];
+				int pc = pbuf[16 * i + 8];
+				int pl = pbuf[16 * i + 9];
+				int cc = pbuf[16 * i + 12];
+				int cl = pbuf[16 * i + 13];
+				uint8 cs = pbuf[16 * i + 14];
 				pbuf += 16;
 				if(cl && !(cl & 0x80) && (pl != cl || pc != cc))
 					ReplayRefreshSingle(cc, cl, cs);
@@ -916,7 +915,7 @@ void ReplayMode::ReplayRefreshGrave(int player, int flag) {
 	mainGame->dField.UpdateFieldCard(mainGame->LocalPlayer(player), LOCATION_GRAVE, (char*)queryBuffer);
 }
 void ReplayMode::ReplayRefreshDeck(int player, int flag) {
-	unsigned char queryBuffer[0x2000];
+	unsigned char queryBuffer[0x4000];
 	/*int len = */query_field_card(pduel, player, LOCATION_DECK, flag, queryBuffer, 0);
 	mainGame->dField.UpdateFieldCard(mainGame->LocalPlayer(player), LOCATION_DECK, (char*)queryBuffer);
 }

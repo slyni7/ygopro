@@ -455,14 +455,13 @@ bool SingleMode::SinglePlayAnalyze(char* msg, unsigned int len) {
 			break;
 		}
 		case MSG_MOVE_GROUP: {
-			int count = pbuf[0];
-			pbuf += 1;
+			count = BufferIO::ReadUInt32(pbuf);
 			for(int i = 0; i < count; i++) {
-				int pc = pbuf[16 * i + 5];
-				int pl = pbuf[16 * i + 6];
-				int cc = pbuf[16 * i + 9];
-				int cl = pbuf[16 * i + 10];
-				int cs = pbuf[16 * i + 11];
+				int pc = pbuf[16 * i + 8];
+				int pl = pbuf[16 * i + 9];
+				int cc = pbuf[16 * i + 12];
+				int cl = pbuf[16 * i + 13];
+				uint8 cs = pbuf[16 * i + 14];
 				pbuf += 16;
 				if(cl && !(cl & 0x80) && (pl != cl || pc != cc))
 					SinglePlayRefreshSingle(cc, cl, cs);

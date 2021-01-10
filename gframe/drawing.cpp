@@ -364,12 +364,12 @@ void Game::DrawCard(ClientCard* pcard) {
 	matManager.mCard.DiffuseColor = (pcard->curAlpha << 24) | 0xffffff;
 	driver->setTransform(irr::video::ETS_WORLD, pcard->mTransform);
 	auto m22 = pcard->mTransform(2, 2);
-	if(m22 > -0.99 || pcard->is_moving) {
+	if(m22 > -0.99 || (pcard->is_moving && pcard->aniFrame > 1)) {
 		matManager.mCard.setTexture(0, imageManager.GetTexture(pcard->code));
 		driver->setMaterial(matManager.mCard);
 		driver->drawVertexPrimitiveList(matManager.vCardFront, 4, matManager.iRectangle, 2);
 	}
-	if(m22 < 0.99 || pcard->is_moving) {
+	if(m22 < 0.99 || (pcard->is_moving && pcard->aniFrame > 1)) {
 		matManager.mCard.setTexture(0, imageManager.tCover[pcard->controler]);
 		driver->setMaterial(matManager.mCard);
 		driver->drawVertexPrimitiveList(matManager.vCardBack, 4, matManager.iRectangle, 2);
