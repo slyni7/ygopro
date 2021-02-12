@@ -74,7 +74,7 @@ int ReplayMode::ReplayThread() {
 	mainGame->dInfo.isFinished = false;
 	mainGame->dInfo.isReplay = true;
 	mainGame->dInfo.isReplaySkiping = (skip_turn > 0);
-	char engineBuffer[0x1000];
+	char engineBuffer[0x8000];
 	is_continuing = true;
 	skip_step = 0;
 	if(mainGame->dInfo.isSingleMode) {
@@ -155,6 +155,12 @@ bool ReplayMode::StartDuel() {
 		cur_replay.ReadName(mainGame->dInfo.clientname);
 	}
 	pduel = create_duel(rnd.rand());
+	if(!preload_script(pduel, "./repositories/delta-utopia/script/constant.lua", 0))
+		preload_script(pduel,  "./script/constant.lua", 0);
+	preload_script(pduel, "./ireina/main.lua", 0);
+	if(!preload_script(pduel, "./repositories/delta-utopia/script/utility.lua", 0))
+		preload_script(pduel, "./script/utility.lua", 0);
+	preload_script(pduel, "./script/special.lua", 0);
 	preload_script(pduel, "./script/special.lua", 0);
 	preload_script(pduel, "./script/init.lua", 0);
 	int start_lp = cur_replay.ReadInt32();
@@ -552,9 +558,25 @@ bool ReplayMode::ReplayAnalyze(char* msg, unsigned int len) {
 				ReplayRefreshSingle(cc, cl, cs);
 			break;
 		}
+		case MSG_SET_DESC_TEXT: {
+			count = BufferIO::ReadInt8(pbuf);
+			pbuf += 4;
+			pbuf += count;
+			DuelClient::ClientAnalyze(offset, pbuf - offset);
+			break;
+		}
+		case MSG_ROTATE: {
+			int cc = pbuf[0];
+			int cl = pbuf[1];
+			uint8 cs = pbuf[2];
+			pbuf += 8;
+			DuelClient::ClientAnalyze(offset, pbuf - offset);
+			ReplayRefreshSingle(cc, cl, cs);
+			break;
+		}
 		case MSG_MOVE_GROUP: {
-			count = BufferIO::ReadUInt32(pbuf);
-			for(int i = 0; i < count; i++) {
+			int32 gct = BufferIO::ReadUInt32(pbuf);
+			for(int32 i = 0; i < gct; i++) {
 				int pc = pbuf[16 * i + 8];
 				int pl = pbuf[16 * i + 9];
 				int cc = pbuf[16 * i + 12];

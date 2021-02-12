@@ -44,7 +44,10 @@ public:
 	std::unordered_map<unsigned int, std::wstring> _setnameStrings;
 	std::unordered_map<unsigned int, std::wstring> _sysStrings;
 
+	std::unordered_map<unsigned int, wchar_t*> _descStrings;
+
 	wchar_t descBuffer[128];
+
 	wchar_t numStrings[256][4];
 	wchar_t numBuffer[6];
 	wchar_t attBuffer[128];
@@ -52,7 +55,7 @@ public:
 	wchar_t tpBuffer[128];
 	wchar_t scBuffer[128];
 	wchar_t lmBuffer[32];
-
+	
 	static wchar_t strBuffer[4096];
 	static byte scriptBuffer[0x20000];
 	static const wchar_t* unknown_string;

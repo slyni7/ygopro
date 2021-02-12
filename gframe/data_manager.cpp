@@ -433,6 +433,15 @@ int DataManager::CardReader(int code, void* pData) {
 byte* DataManager::ScriptReaderEx(const char* script_name, int* slen) {
 	byte* buffer;
 	if(!mainGame->gameConf.prefer_expansion_script) {
+		buffer = ScriptReaderExSingle("repositories/delta-utopia/script/official/", script_name, slen, 9);
+		if(buffer)
+			return buffer;
+		buffer = ScriptReaderExSingle("repositories/delta-utopia/script/pre-release/", script_name, slen, 9);
+		if(buffer)
+			return buffer;
+		buffer = ScriptReaderExSingle("script/official/", script_name, slen, 9);
+		if(buffer)
+			return buffer;
 		buffer = ScriptReaderExSingle("", script_name, slen);
 		if(buffer)
 			return buffer;
@@ -441,6 +450,15 @@ byte* DataManager::ScriptReaderEx(const char* script_name, int* slen) {
 	if(buffer)
 		return buffer;
 	buffer = ScriptReaderExSingle("expansions/", script_name, slen);
+	if(buffer)
+		return buffer;
+	buffer = ScriptReaderExSingle("repositories/delta-utopia/script/official/", script_name, slen, 9);
+	if(buffer)
+		return buffer;
+	buffer = ScriptReaderExSingle("repositories/delta-utopia/script/pre-release/", script_name, slen, 9);
+	if(buffer)
+		return buffer;
+	buffer = ScriptReaderExSingle("script/official/", script_name, slen, 9);
 	if(buffer)
 		return buffer;
 	return ScriptReaderExSingle("", script_name, slen);

@@ -415,6 +415,11 @@ void TagDuel::TPResult(DuelPlayer* dp, unsigned char tp) {
 	set_message_handler((message_handler)TagDuel::MessageHandler);
 	rnd.reset(seed);
 	pduel = create_duel(rnd.rand());
+	if(!preload_script(pduel, "./repositories/delta-utopia/script/constant.lua", 0))
+		preload_script(pduel,  "./script/constant.lua", 0);
+	preload_script(pduel, "./ireina/main.lua", 0);
+	if(!preload_script(pduel, "./repositories/delta-utopia/script/utility.lua", 0))
+		preload_script(pduel, "./script/utility.lua", 0);
 	preload_script(pduel, "./script/special.lua", 0);
 	preload_script(pduel, "./script/init.lua", 0);
 	set_player_info(pduel, 0, host_info.start_lp, host_info.start_hand, host_info.draw_count);
@@ -499,7 +504,7 @@ void TagDuel::TPResult(DuelPlayer* dp, unsigned char tp) {
 	Process();
 }
 void TagDuel::Process() {
-	char engineBuffer[0x1000];
+	char engineBuffer[0x8000];
 	unsigned int engFlag = 0, engLen = 0;
 	int stop = 0;
 	while (!stop) {
@@ -982,11 +987,37 @@ int TagDuel::Analyze(char* msgbuffer, unsigned int len) {
 				RefreshSingle(cc, cl, cs);
 			break;
 		}
+		case MSG_SET_DESC_TEXT: {
+			count = BufferIO::ReadInt8(pbuf);
+			pbuf += 4;
+			pbuf += count;
+			NetServer::SendBufferToPlayer(players[0], STOC_GAME_MSG, offset, pbuf - offset);
+			NetServer::ReSendToPlayer(players[1]);
+			NetServer::ReSendToPlayer(players[2]);
+			NetServer::ReSendToPlayer(players[3]);
+			for(auto oit = observers.begin(); oit != observers.end(); ++oit)
+				NetServer::ReSendToPlayer(*oit);
+			break;
+		}
+		case MSG_ROTATE: {
+			int cc = pbuf[0];
+			int cl = pbuf[1];
+			int cs = pbuf[2];
+			pbuf += 8;
+			NetServer::SendBufferToPlayer(cur_player[cc], STOC_GAME_MSG, offset, pbuf - offset);
+			for(int i = 0; i < 4; ++i)
+				if(players[i] != cur_player[cc])
+					NetServer::SendBufferToPlayer(players[i], STOC_GAME_MSG, offset, pbuf - offset);
+			for(auto oit = observers.begin(); oit != observers.end(); ++oit)
+				NetServer::ReSendToPlayer(*oit);
+			RefreshSingle(cc, cl, cs);
+			break;
+		}
 		case MSG_MOVE_GROUP: {
-			count = BufferIO::ReadUInt32(pbuf);
+			int32 gct = BufferIO::ReadUInt32(pbuf);
 			for (int p = 0; p < 5; p++) {
 				pbufw = pbuf;
-				for (int i = 0; i < count; i++) {
+				for (int32 i = 0; i < gct; i++) {
 					uint32 code = BufferIO::ReadUInt32(pbuf);
 					int pc = pbuf[16 * i + 8];
 					int pl = pbuf[16 * i + 9];
@@ -1007,9 +1038,9 @@ int TagDuel::Analyze(char* msgbuffer, unsigned int len) {
 					for (auto oit = observers.begin(); oit != observers.end(); ++oit)
 						NetServer::SendBufferToPlayer(*oit, STOC_GAME_MSG, offset, pbuf - offset);
 				}
-				pbuf -= count * 16;
+				pbuf -= gct * 16;
 			}
-			pbuf += count * 16;
+			pbuf += gct * 16;
 			break;
 		}
 		case MSG_POS_CHANGE: {

@@ -184,7 +184,8 @@ void Game::DrawBackGround() {
 	//current sel
 	if (dField.hovered_location != 0 && dField.hovered_location != 2 && dField.hovered_location != POSITION_HINT
 		&& !(dInfo.duel_rule < 4 && dField.hovered_location == LOCATION_MZONE && dField.hovered_sequence > 4)
-		&& !(dInfo.duel_rule >= 4 && dField.hovered_location == LOCATION_SZONE && dField.hovered_sequence > 5)) {
+		&& !(dInfo.duel_rule >= 4 && dField.hovered_location == LOCATION_SZONE && dField.hovered_sequence > 5)
+		&& !(dInfo.duel_rule >= 64 && dField.hovered_location == LOCATION_MZONE && dField.hovered_sequence > 4)) {
 		S3DVertex *vertex = 0;
 		if (dField.hovered_location == LOCATION_DECK)
 			vertex = matManager.vFieldDeck[dField.hovered_controler][rule];
@@ -323,14 +324,14 @@ void Game::CheckMutual(ClientCard* pcard, int mark) {
 	}
 }
 void Game::DrawCards() {
-	for(int p = 0; p < 2; ++p) {
-		for(auto it = dField.mzone[p].begin(); it != dField.mzone[p].end(); ++it)
-			if(*it)
+	for (int p = 0; p < 2; ++p) {
+		for (auto it = dField.mzone[p].begin(); it != dField.mzone[p].end(); ++it)
+			if (*it)
 				DrawCard(*it);
-		for(auto it = dField.szone[p].begin(); it != dField.szone[p].end(); ++it)
-			if(*it)
+		for (auto it = dField.szone[p].begin(); it != dField.szone[p].end(); ++it)
+			if (*it)
 				DrawCard(*it);
-		for(auto it = dField.deck[p].begin(); it != dField.deck[p].end(); ++it)
+		for (auto it = dField.deck[p].begin(); it != dField.deck[p].end(); ++it)
 			DrawCard(*it);
 		for(auto it = dField.hand[p].begin(); it != dField.hand[p].end(); ++it)
 			DrawCard(*it);
@@ -338,7 +339,7 @@ void Game::DrawCards() {
 			DrawCard(*it);
 		for(auto it = dField.remove[p].begin(); it != dField.remove[p].end(); ++it)
 			DrawCard(*it);
-		for(auto it = dField.extra[p].begin(); it != dField.extra[p].end(); ++it)
+		for (auto it = dField.extra[p].begin(); it != dField.extra[p].end(); ++it)
 			DrawCard(*it);
 	}
 	for(auto cit = dField.overlay_cards.begin(); cit != dField.overlay_cards.end(); ++cit)
@@ -365,7 +366,12 @@ void Game::DrawCard(ClientCard* pcard) {
 	driver->setTransform(irr::video::ETS_WORLD, pcard->mTransform);
 	auto m22 = pcard->mTransform(2, 2);
 	if(m22 > -0.99 || (pcard->is_moving && pcard->aniFrame > 1)) {
-		matManager.mCard.setTexture(0, imageManager.GetTexture(pcard->code));
+		/* if (pcard->code == 46448938) {
+			pcard->cardFrame++;
+			if (pcard->cardFrame > 10)
+				pcard->cardFrame = 1;
+		} */
+		matManager.mCard.setTexture(0, imageManager.GetTexture(pcard->code, FALSE, pcard->cardFrame));
 		driver->setMaterial(matManager.mCard);
 		driver->drawVertexPrimitiveList(matManager.vCardFront, 4, matManager.iRectangle, 2);
 	}
@@ -489,6 +495,16 @@ void Game::DrawMisc() {
 			(matManager.vFieldSzone[1][seq][rule][0].Pos.Y + matManager.vFieldSzone[1][seq][rule][2].Pos.Y) / 2, 0.03f));
 		driver->setTransform(irr::video::ETS_WORLD, im);
 		driver->drawVertexPrimitiveList(matManager.vActivate, 4, matManager.iRectangle, 2);
+	}
+	if(imageManager.tCenter) {
+		irr::core::vector3df pos = vector3df((matManager.vFieldContiAct[0].X + matManager.vFieldContiAct[1].X) / 2,
+			(matManager.vFieldContiAct[0].Y + matManager.vFieldContiAct[2].Y) / 2, 0);
+		im.setRotationRadians(irr::core::vector3df(0, 0, 0));
+		im.setTranslation(pos);
+		driver->setTransform(irr::video::ETS_WORLD, im);
+		matManager.mCard.setTexture(0, imageManager.tCenter);
+		driver->setMaterial(matManager.mCard);
+		driver->drawVertexPrimitiveList(matManager.vCardCenter, 4, matManager.iRectangle, 2);
 	}
 	if(dField.conti_act) {
 		irr::core::vector3df pos = vector3df((matManager.vFieldContiAct[0].X + matManager.vFieldContiAct[1].X) / 2,

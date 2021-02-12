@@ -56,6 +56,7 @@ public:
 	u32 curAlpha;
 	u32 dAlpha;
 	u32 aniFrame;
+	u32 cardFrame;
 	bool is_moving;
 	bool is_fading;
 	bool is_hovered;
@@ -111,6 +112,7 @@ public:
 	wchar_t rscstring[16];
 	s32 square_count;
 	s32 square_mana[64];
+	u32 link_rotate;
 
 	ClientCard();
 	void SetCode(int code);

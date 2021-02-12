@@ -40,6 +40,12 @@ int SingleMode::SinglePlayThread() {
 	set_card_reader((card_reader)DataManager::CardReader);
 	set_message_handler((message_handler)MessageHandler);
 	pduel = create_duel(rnd.rand());
+	if(!preload_script(pduel, "./repositories/delta-utopia/script/constant.lua", 0))
+		preload_script(pduel,  "./script/constant.lua", 0);
+	preload_script(pduel, "./ireina/main.lua", 0);
+	if(!preload_script(pduel, "./repositories/delta-utopia/script/utility.lua", 0))
+		preload_script(pduel, "./script/utility.lua", 0);
+	preload_script(pduel, "./script/special.lua", 0);
 	preload_script(pduel, "./script/special.lua", 0);
 	preload_script(pduel, "./script/init.lua", 0);
 	set_player_info(pduel, 0, start_lp, start_hand, draw_count);
@@ -99,7 +105,7 @@ int SingleMode::SinglePlayThread() {
 	mainGame->dInfo.isSingleMode = true;
 	mainGame->device->setEventReceiver(&mainGame->dField);
 	mainGame->gMutex.unlock();
-	char engineBuffer[0x1000];
+	char engineBuffer[0x8000];
 	is_closing = false;
 	is_continuing = true;
 	int len = get_message(pduel, (byte*)engineBuffer);
@@ -454,9 +460,25 @@ bool SingleMode::SinglePlayAnalyze(char* msg, unsigned int len) {
 				SinglePlayRefreshSingle(cc, cl, cs);
 			break;
 		}
+		case MSG_SET_DESC_TEXT: {
+			count = BufferIO::ReadInt8(pbuf);
+			pbuf += 4;
+			pbuf += count;
+			DuelClient::ClientAnalyze(offset, pbuf - offset);
+			break;
+		}
+		case MSG_ROTATE: {
+			int cc = pbuf[0];
+			int cl = pbuf[1];
+			int cs = pbuf[2];
+			pbuf += 8;
+			DuelClient::ClientAnalyze(offset, pbuf - offset);
+			SinglePlayRefreshSingle(cc, cl, cs);
+			break;
+		}
 		case MSG_MOVE_GROUP: {
-			count = BufferIO::ReadUInt32(pbuf);
-			for(int i = 0; i < count; i++) {
+			int32 gct = BufferIO::ReadUInt32(pbuf);
+			for(int32 i = 0; i < gct; i++) {
 				int pc = pbuf[16 * i + 8];
 				int pl = pbuf[16 * i + 9];
 				int cc = pbuf[16 * i + 12];

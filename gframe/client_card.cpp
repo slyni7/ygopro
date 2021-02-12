@@ -9,6 +9,7 @@ ClientCard::ClientCard() {
 	curAlpha = 255;
 	dAlpha = 0;
 	aniFrame = 0;
+	cardFrame = 1;
 	is_moving = false;
 	is_fading = false;
 	is_hovered = false;
@@ -49,6 +50,8 @@ ClientCard::ClientCard() {
 	lscstring[0] = 0;
 	overlayTarget = 0;
 	equipTarget = 0;
+	square_count = 0;
+	link_rotate = 0;
 }
 void ClientCard::SetCode(int code) {
 	if((location == LOCATION_HAND) && (this->code != (unsigned int)code)) {
@@ -186,6 +189,7 @@ void ClientCard::UpdateInfo(char* buf) {
 		}
 	}
 	if(flag & QUERY_SQUARE) {
+		link_rotate = BufferIO::ReadInt32(buf);
 		square_count = BufferIO::ReadInt32(buf);
 		for (int i = 0; i < square_count; i++) {
 			square_mana[i] = BufferIO::ReadInt32(buf);

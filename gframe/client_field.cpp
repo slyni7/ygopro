@@ -983,7 +983,7 @@ void ClientField::GetCardLocation(ClientCard* pcard, irr::core::vector3df* t, ir
 				else r->Y = 0.0f;
 			} else {
 				r->X = 0.0f;
-				r->Z = 0.0f;
+				r->Z = 0.0f + (3.1415926f / 4.0f) * pcard->link_rotate;
 				if (pcard->position & POS_FACEDOWN)
 					r->Y = 3.1415926f;
 				else r->Y = 0.0f;
@@ -997,7 +997,7 @@ void ClientField::GetCardLocation(ClientCard* pcard, irr::core::vector3df* t, ir
 				else r->Y = 0.0f;
 			} else {
 				r->X = 0.0f;
-				r->Z = 3.1415926f;
+				r->Z = 3.1415926f + (3.1415926f / 4.0f) * pcard->link_rotate;
 				if (pcard->position & POS_FACEDOWN)
 					r->Y = 3.1415926f;
 				else r->Y = 0.0f;

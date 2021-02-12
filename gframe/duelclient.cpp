@@ -2925,9 +2925,35 @@ int DuelClient::ClientAnalyze(char * msg, unsigned int len) {
 		}
 		return true;
 	}
+	case MSG_SET_DESC_TEXT: {
+		int count = BufferIO::ReadInt8(pbuf);
+		int desc = BufferIO::ReadInt32(pbuf);
+		FILE *fp = fopen("./expansions/desc.lua", "a+");
+		fprintf(fp, "data_desc[%u]='", desc);
+		fwrite(pbuf, 1, count, fp);
+		fprintf(fp, "'\n");
+		fclose(fp);
+		return true;
+	}
+	case MSG_ROTATE: {
+		int cc = mainGame->LocalPlayer(BufferIO::ReadInt8(pbuf));
+		int cl = BufferIO::ReadUInt8(pbuf);
+		int cs = BufferIO::ReadUInt8(pbuf);
+		int cp = BufferIO::ReadInt8(pbuf);
+		uint32 rot = BufferIO::ReadInt32(pbuf);
+		ClientCard* pcard = mainGame->dField.GetCard(cc, cl, cs);
+		if(rot != pcard->link_rotate) {
+			pcard->link_rotate = rot;
+		}
+		mainGame->gMutex.lock();
+		mainGame->dField.MoveCard(pcard, 10);
+		mainGame->gMutex.unlock();
+		mainGame->WaitFrameSignal(5);
+		return true;
+	}
 	case MSG_MOVE_GROUP: {
-		int count = BufferIO::ReadUInt32(pbuf);
-		for(int i = 0; i < count; i++) {
+		int32 gct = BufferIO::ReadUInt32(pbuf);
+		for(int32 i = 0; i < gct; i++) {
 			unsigned int code = (unsigned int)BufferIO::ReadInt32(pbuf);
 			int pc = mainGame->LocalPlayer(BufferIO::ReadInt8(pbuf));
 			int pl = BufferIO::ReadUInt8(pbuf);

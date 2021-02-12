@@ -1,5 +1,7 @@
 #include "image_manager.h"
 #include "game.h"
+#include <stdio.h>
+#include <io.h>
 
 namespace ygo {
 
@@ -190,6 +192,7 @@ void ImageManager::ResizeTexture() {
 	driver->removeTexture(tUnknownFit);
 	driver->removeTexture(tUnknownThumb);
 	driver->removeTexture(tLoading);
+	tCenter = GetTextureFromFile("textures/center.jpg", CARD_IMG_WIDTH, CARD_IMG_HEIGHT);
 	tUnknown = GetTextureFromFile("textures/unknown.jpg", CARD_IMG_WIDTH, CARD_IMG_HEIGHT);
 	tUnknownFit = GetTextureFromFile("textures/unknown.jpg", imgWidthFit, imgHeightFit);
 	tUnknownThumb = GetTextureFromFile("textures/unknown.jpg", imgWidthThumb, imgHeightThumb);
@@ -310,7 +313,7 @@ irr::video::ITexture* ImageManager::GetTextureFromFile(const char* file, s32 wid
 		return driver->getTexture(file);
 	}
 }
-irr::video::ITexture* ImageManager::GetTexture(int code, bool fit) {
+irr::video::ITexture* ImageManager::GetTexture(int code, bool fit, int frame) {
 	if(code == 0)
 		return fit ? tUnknownFit : tUnknown;
 	int width = CARD_IMG_WIDTH;
@@ -322,11 +325,21 @@ irr::video::ITexture* ImageManager::GetTexture(int code, bool fit) {
 		width = width * mul;
 		height = height * mul;
 	}
+	/* sprintf(file, "expansions/pics/%d/%d.jpg", code, frame);
+	img = GetTextureFromFile(file, width, height);
+	if (img == NULL) {
+		sprintf(file, "pics/%d/%d.jpg", code, frame);
+		img = GetTextureFromFile(file, width, height);
+	}
+	if (img) {
+		return img;
+	} */
 	auto tit = tMap[fit ? 1 : 0].find(code);
-	if(tit == tMap[fit ? 1 : 0].end()) {
+	if (tit == tMap[fit ? 1 : 0].end()) {
 		char file[256];
+		irr::video::ITexture* img;
 		sprintf(file, "expansions/pics/%d.png", code);
-		irr::video::ITexture* img = GetTextureFromFile(file, width, height);
+		img = GetTextureFromFile(file, width, height);
 		if(img == NULL) {
 			sprintf(file, "expansions/pics/%d.jpg", code);
 			img = GetTextureFromFile(file, width, height);

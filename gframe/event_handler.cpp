@@ -491,6 +491,12 @@ bool ClientField::OnEvent(const irr::SEvent& event) {
 								selectable_cards.push_back(grave[command_controler][i]);
 						break;
 					}
+					case LOCATION_REMOVED: {
+						for(size_t i = 0; i < remove[command_controler].size(); ++i)
+							if(remove[command_controler][i]->cmdFlag & COMMAND_SPSUMMON)
+								selectable_cards.push_back(remove[command_controler][i]);
+						break;
+					}
 					case LOCATION_EXTRA: {
 						for(size_t i = 0; i < extra[command_controler].size(); ++i)
 							if(extra[command_controler][i]->cmdFlag & COMMAND_SPSUMMON)
@@ -2502,6 +2508,32 @@ void ClientField::GetHoverField(int x, int y) {
 					hovered_controler = 0;
 					hovered_location = LOCATION_MZONE;
 					hovered_sequence = sequence;
+				}
+				else if (boardy >= matManager.vFieldMzone[0][5][0].Pos.Y && boardy <= matManager.vFieldMzone[0][5][2].Pos.Y) {
+					if (sequence == 1) {
+						if (!mzone[1][6]) {
+							hovered_controler = 0;
+							hovered_location = LOCATION_MZONE;
+							hovered_sequence = 5;
+						}
+						else {
+							hovered_controler = 1;
+							hovered_location = LOCATION_MZONE;
+							hovered_sequence = 6;
+						}
+					}
+					else if (sequence == 3) {
+						if (!mzone[1][5]) {
+							hovered_controler = 0;
+							hovered_location = LOCATION_MZONE;
+							hovered_sequence = 6;
+						}
+						else {
+							hovered_controler = 1;
+							hovered_location = LOCATION_MZONE;
+							hovered_sequence = 5;
+						}
+					}
 				}
 				else if (boardy >= matManager.vFieldMzone[1][1][2].Pos.Y && boardy <= matManager.vFieldMzone[1][1][0].Pos.Y) {
 					hovered_controler = 1;

@@ -37,7 +37,9 @@ private:
 	static unsigned int last_successful_msg_length;
 	static wchar_t event_string[256];
 	static mtrandom rnd;
+	
 public:
+
 	static unsigned int temp_ip;
 	static unsigned short temp_port;
 	static unsigned short temp_ver;

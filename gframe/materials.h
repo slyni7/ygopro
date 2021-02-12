@@ -7,6 +7,7 @@ public:
 	Materials();
 	void GenArrow(float y);
 	
+	S3DVertex vCardCenter[4];
 	S3DVertex vCardFront[4];
 	S3DVertex vCardOutline[4];
 	S3DVertex vCardOutliner[4];
