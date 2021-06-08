@@ -46,7 +46,6 @@ int SingleMode::SinglePlayThread() {
 	if(!preload_script(pduel, "./repositories/delta-utopia/script/utility.lua", 0))
 		preload_script(pduel, "./script/utility.lua", 0);
 	preload_script(pduel, "./script/special.lua", 0);
-	preload_script(pduel, "./script/special.lua", 0);
 	preload_script(pduel, "./script/init.lua", 0);
 	set_player_info(pduel, 0, start_lp, start_hand, draw_count);
 	set_player_info(pduel, 1, start_lp, start_hand, draw_count);

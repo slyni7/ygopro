@@ -3,6 +3,7 @@
 #include "network.h"
 #include "game.h"
 #include "base64.h"
+#include "../ocgcore/mtrandom.h"
 
 namespace ygo {
 
@@ -78,11 +79,11 @@ int DeckManager::CheckDeck(Deck& deck, int lfhash, bool allow_ocg, bool allow_tc
 	if(!list)
 		return 0;
 	int dc = 0;
-	if(deck.main.size() < 40 || deck.main.size() > 60)
+	if(deck.main.size() < 40 || deck.main.size() > 200)
 		return (DECKERROR_MAINCOUNT << 28) + deck.main.size();
-	if(deck.extra.size() > 15)
+	if(deck.extra.size() > 100)
 		return (DECKERROR_EXTRACOUNT << 28) + deck.extra.size();
-	if(deck.side.size() > 15)
+	if(deck.side.size() > 100)
 		return (DECKERROR_SIDECOUNT << 28) + deck.side.size();
 
 	for(size_t i = 0; i < deck.main.size(); ++i) {
@@ -148,10 +149,10 @@ int DeckManager::LoadDeck(Deck& deck, int* dbuf, int mainc, int sidec) {
 		if(cd.type & TYPE_TOKEN)
 			continue;
 		else if(cd.type & (TYPE_FUSION | TYPE_SYNCHRO | TYPE_EXTRA | TYPE_XYZ | TYPE_LINK)) {
-			if(deck.extra.size() >= 15)
+			if(deck.extra.size() >= 100)
 				continue;
 			deck.extra.push_back(dataManager.GetCodePointer(code));	//verified by GetData()
-		} else if(deck.main.size() < 60) {
+		} else if(deck.main.size() < 200) {
 			deck.main.push_back(dataManager.GetCodePointer(code));
 		}
 	}
@@ -163,10 +164,36 @@ int DeckManager::LoadDeck(Deck& deck, int* dbuf, int mainc, int sidec) {
 		}
 		if(cd.type & TYPE_TOKEN)
 			continue;
-		if(deck.side.size() < 15)
+		if(deck.side.size() < 100)
 			deck.side.push_back(dataManager.GetCodePointer(code));	//verified by GetData()
 	}
 	return errorcode;
+}
+int DeckManager::RandomDeck(Deck& deck, unsigned char dt) {
+	deck.clear();
+	int code;
+	int errorcode = 0;
+	CardData cd;
+	mtrandom rnd;
+	time_t seed = time(0);
+	rnd.reset(seed * (dt + 1));
+	while((deck.main.size() < 50) || (deck.extra.size() < 20)) {
+		code = rnd.real() * 100000000;
+		if(!dataManager.GetData(code, &cd))
+			continue;
+		if((cd.ot < 1) || (cd.ot > 3))
+			continue;
+		if(cd.type & TYPE_TOKEN)
+			continue;
+		else if(cd.type & (TYPE_FUSION | TYPE_SYNCHRO | TYPE_EXTRA | TYPE_XYZ | TYPE_LINK)) {
+			if(deck.extra.size() >= 20)
+				continue;
+			deck.extra.push_back(dataManager.GetCodePointer(code));
+		}
+		else if (deck.main.size() < 50)
+			deck.main.push_back(dataManager.GetCodePointer(code));
+	}
+	return 0;
 }
 bool DeckManager::LoadSide(Deck& deck, int* dbuf, int mainc, int sidec) {
 	std::unordered_map<int, int> pcount;
@@ -250,10 +277,10 @@ bool DeckManager::LoadDeck(const wchar_t* file) {
 	}
 	if(!fp)
 		return false;
-	int cardlist[128];
+	int cardlist[512];
 	bool is_side = false;
-	char linebuf[256];
-	while(fgets(linebuf, 256, fp) && ct < 128) {
+	char linebuf[1024];
+	while(fgets(linebuf, 1024, fp) && ct < 512) {
 		if(linebuf[0] == '!') {
 			is_side = true;
 			continue;

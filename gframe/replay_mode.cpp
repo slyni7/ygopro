@@ -161,13 +161,14 @@ bool ReplayMode::StartDuel() {
 	if(!preload_script(pduel, "./repositories/delta-utopia/script/utility.lua", 0))
 		preload_script(pduel, "./script/utility.lua", 0);
 	preload_script(pduel, "./script/special.lua", 0);
-	preload_script(pduel, "./script/special.lua", 0);
 	preload_script(pduel, "./script/init.lua", 0);
 	int start_lp = cur_replay.ReadInt32();
 	int start_hand = cur_replay.ReadInt32();
 	int draw_count = cur_replay.ReadInt32();
 	int opt = cur_replay.ReadInt32();
 	int duel_rule = opt >> 16;
+	if(duel_rule == 50)
+		preload_script(pduel,  "./script/RDD.lua", 0);
 	mainGame->dInfo.duel_rule = duel_rule;
 	set_player_info(pduel, 0, start_lp, start_hand, draw_count);
 	set_player_info(pduel, 1, start_lp, start_hand, draw_count);

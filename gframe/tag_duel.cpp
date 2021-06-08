@@ -273,7 +273,10 @@ void TagDuel::UpdateDeck(DuelPlayer* dp, void* pdata, unsigned int len) {
 		NetServer::SendPacketToPlayer(dp, STOC_ERROR_MSG, scem);
 		return;
 	}
-	deck_error[dp->type] = deckManager.LoadDeck(pdeck[dp->type], (int*)deckbuf, mainc, sidec);
+	if(host_info.duel_rule == 50)
+		deck_error[dp->type] = deckManager.RandomDeck(pdeck[dp->type], dp->type);
+	else
+		deck_error[dp->type] = deckManager.LoadDeck(pdeck[dp->type], (int*)deckbuf, mainc, sidec);
 }
 void TagDuel::StartDuel(DuelPlayer* dp) {
 	if(dp != host_player)
@@ -423,6 +426,8 @@ void TagDuel::TPResult(DuelPlayer* dp, unsigned char tp) {
 		preload_script(pduel, "./script/utility.lua", 0);
 	preload_script(pduel, "./script/special.lua", 0);
 	preload_script(pduel, "./script/init.lua", 0);
+	if(host_info.duel_rule == 50)
+		preload_script(pduel,  "./script/RDD.lua", 0);
 	set_player_info(pduel, 0, host_info.start_lp, host_info.start_hand, host_info.draw_count);
 	set_player_info(pduel, 1, host_info.start_lp, host_info.start_hand, host_info.draw_count);
 	int opt = (int)host_info.duel_rule << 16;
@@ -1027,8 +1032,11 @@ int TagDuel::Analyze(char* msgbuffer, unsigned int len) {
 					uint8 cs = pbuf[16 * i + 14];
 					int cp = pbuf[16 * i + 15];
 					pbuf += 12;
-					if (!(cl & (LOCATION_GRAVE + LOCATION_OVERLAY)) && ((cl & (LOCATION_DECK + LOCATION_HAND)) || (cp & POS_FACEDOWN)) && (players[i] != cur_player[cc]))
-						BufferIO::WriteInt32(pbufw, 0);
+					if (!(cl & (LOCATION_GRAVE + LOCATION_OVERLAY))
+						&& ((cl & (LOCATION_DECK + LOCATION_HAND)) || (cp & POS_FACEDOWN))
+						&& (players[i] != cur_player[cc]))
+						//BufferIO::WriteInt32(pbufw, 0);
+						BufferIO::WriteInt32(pbufw, code);
 					else
 						BufferIO::WriteInt32(pbufw, code);
 					pbufw += 12;

@@ -155,7 +155,7 @@ void DuelClient::ClientEvent(bufferevent *bev, short events, void *ctx) {
 				cscg.info.time_limit = _wtoi(mainGame->ebTimeLimit->getText());
 				cscg.info.lflist = mainGame->cbLFlist->getItemData(mainGame->cbLFlist->getSelected());
 				int rule = mainGame->cbDuelRule->getSelected() + 1;
-				cscg.info.duel_rule = (rule >= 6) ? 64 : rule;
+				cscg.info.duel_rule = (rule == 7) ? 64 : ((rule == 6) ? 50 : rule);
 				cscg.info.no_check_deck = mainGame->chkNoCheckDeck->isChecked();
 				cscg.info.no_shuffle_deck = mainGame->chkNoShuffleDeck->isChecked();
 			}
@@ -538,7 +538,9 @@ void DuelClient::HandleSTOCPacketLan(char* data, unsigned int len) {
 		str.append(msgbuf);
 		if(pkt->info.duel_rule != DEFAULT_DUEL_RULE) {
 			if(pkt->info.duel_rule >= 64)
-				myswprintf(msgbuf, L"*%ls\n", dataManager.GetSysString(1260 + pkt->info.duel_rule - 59));
+				myswprintf(msgbuf, L"*%ls\n", dataManager.GetSysString(1266));
+			else if(pkt->info.duel_rule >= 50)
+				myswprintf(msgbuf, L"*%ls\n", dataManager.GetSysString(1265));
 			else
 				myswprintf(msgbuf, L"*%ls\n", dataManager.GetSysString(1260 + pkt->info.duel_rule - 1));
 			str.append(msgbuf);

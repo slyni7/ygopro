@@ -22,6 +22,7 @@ struct CardData {
 	unsigned int lscale;
 	unsigned int rscale;
 	unsigned int link_marker;
+	unsigned int ot;
 };
 struct CardDataC {
 	unsigned int code;
